@@ -1,4 +1,4 @@
-# minydra
+# minydra 🦎
 
 Minimal Python command-line parser inspired by Facebook's Hydra.
 
@@ -7,7 +7,7 @@ Easily parse arbitrary arguments from the command line without dependencies:
 ![example code](assets/code.png)
 ![example code](assets/run.png)
 
-## Usage:
+## Usage
 
 [`examples/parser.py`](examples/parser.py)
 
@@ -49,7 +49,6 @@ if __name__ == "__main__":
 
 ```
 $ python decorator.py outdir=$HOME/project save -log learning_rate=1e-4 batch_size=64
-
 ╭───────────────────────────────────────────╮
 │ batch_size    : 64                        │
 │ learning_rate : 0.0001                    │
@@ -74,7 +73,6 @@ $ python decorator.py server.conf.port=8000
 
 ```
 $ python examples/decorator.py layers="[1, 2, 3]" norms="{'conv': 'batch', 'epsilon': 1e-3}"
-
 ╭──────────────────────────────────────────────────╮
 │ layers : [1, 2, 3]                               │
 │ norms  : {'conv': 'batch', 'epsilon': 0.001}     │
@@ -83,7 +81,7 @@ $ python examples/decorator.py layers="[1, 2, 3]" norms="{'conv': 'batch', 'epsi
 
 ## MinyDict
 
-Minydra's args are a custom lightweight wrapper around native `dict` which allows for dot access (`args.key`), resolving dotted keys into nested dicts and pretty printing sorted keys in a box with nested dicts indented.
+Minydra's args are a custom lightweight wrapper around native `dict` which allows for dot access (`args.key`), resolving dotted keys into nested dicts and pretty printing sorted keys in a box with nested dicts indented. If a key does not exist, it will not fail, rather return None (as `dict.get(key, None)`).
 
 a `MinyDict` inherits from `dict` so usual methods work `.keys()`, `.items()` etc.
 
@@ -91,18 +89,30 @@ a `MinyDict` inherits from `dict` so usual methods work `.keys()`, `.items()` et
 
 In [1]: from minydra.dict import MinyDict
 
-In [2]: MinyDict({"foo": "bar", "yes.no.maybe": "idontknow"}).pretty_print()
+In [2]: args = MinyDict({"foo": "bar", "yes.no.maybe": "idontknow"}).pretty_print()
 ╭──────────────────────────────╮
 │ foo          : bar           │
 │ yes.no.maybe : idontknow     │
 ╰──────────────────────────────╯
 
-In [3]: MinyDict({"foo": "bar", "yes.no.maybe": "idontknow"}).resolve().pretty_print()
+In [3]: args.resolve().pretty_print()
 ╭───────────────────────────────╮
 │ foo : bar                     │
 │ yes                           │
 │     no                        │
 │         maybe : idontknow     │
 ╰───────────────────────────────╯
+
+In [4]: "foo" in args
+Out[4]: True
+
+In [5]: "rick" in args
+Out[5]: False
+
+In [6]: args.morty is None
+Out[6]: True
+
+In [7]: args.items()
+Out[7]: dict_items([('foo', 'bar'), ('yes.no.maybe', 'idontknow')])
 ```
 
