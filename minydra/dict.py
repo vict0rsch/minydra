@@ -99,7 +99,11 @@ class MinyDict(dict):
             ml = max([len(str(k)) for k in self] + [0]) + 1
 
             # print in alphabetical order
-            for k in sorted(self.keys()):
+            for i in [
+                i[0]
+                for i in sorted(enumerate(map(str, self.keys())), key=lambda x: x[1])
+            ]:
+                k = list(self.keys())[i]
                 v = self[k]
                 if "MinyDict" in str(type(v)):
                     # recursive pretty_print call
