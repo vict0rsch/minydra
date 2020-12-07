@@ -19,6 +19,25 @@ class MinyDict(dict):
 
     def resolve(self):
         """
+        Chains the calls to resolve dotted keys and convert nested dicts to MinyDicts.
+        Changes are done in-place but still returns self to chain calls
+
+        Returns:
+            MinyDict: Resolved version of self
+        """
+        return self._resolve_nested()._resolve_dots()
+
+    def _resolve_nested(self):
+        for k in list(self.keys()):
+            v = self[k]
+            if isinstance(v, dict):
+                v = MinyDict(v)
+                v._resolve_nested()
+                self[k] = v
+        return self
+
+    def _resolve_dots(self):
+        """
         Resolves "foo.bar" keys into nested MinyDicts:
 
         MinyDict({"a": 1, "b.c.d" : 2}).resolve()
