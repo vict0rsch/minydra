@@ -25,14 +25,14 @@ class MinyDict(dict):
         Returns:
             MinyDict: Resolved version of self
         """
-        return self._resolve_nested()._resolve_dots()
+        return self._resolve_nests()._resolve_dots()
 
-    def _resolve_nested(self):
+    def _resolve_nests(self):
         for k in list(self.keys()):
             v = self[k]
             if isinstance(v, dict):
                 v = MinyDict(v)
-                v._resolve_nested()
+                v._resolve_nests()
                 self[k] = v
         return self
 
@@ -85,7 +85,12 @@ class MinyDict(dict):
         Raises:
             MinyDictWrongAttributeException: The attribute is protected
         """
-        if name in set(dir(dict())) | {"resolve", "pretty_print"}:
+        if name in set(dir(dict())) | {
+            "resolve",
+            "pretty_print",
+            "_resolve_nests",
+            "_resolve_dots",
+        }:
             raise MinyDictWrongAttributeException(
                 f"`{name}` is a  protected attribute of MinyDict"
             )
