@@ -7,6 +7,11 @@ Easily parse arbitrary arguments from the command line without dependencies:
 ![example code](assets/code.png)
 ![example code](assets/run.png)
 
+
+```
+pip install minydra
+```
+
 ## Usage
 
 [`examples/parser.py`](examples/parser.py)
