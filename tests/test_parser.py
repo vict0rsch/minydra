@@ -16,6 +16,11 @@ def run(args):
     return subprocess.run(COMMAND + args, capture_output=True).stdout.decode()
 
 
+def fail(args):
+    assert isinstance(args, list)
+    return subprocess.run(COMMAND + args, capture_output=True).stderr.decode()
+
+
 def capture(minydict):
     f = io.StringIO()
     with redirect_stdout(f):
@@ -50,4 +55,12 @@ def test_dotted():
     assert run(["a.b.x=2"]) == capture(MinyDict({"a": {"b": {"x": 2}}}))
 
 
-# TODO: add fail tests
+def test_fail_equal():
+    assert "MinydraWrongArgumentException" in fail(["a="])
+    assert "MinydraWrongArgumentException" in fail(["="])
+    assert "MinydraWrongArgumentException" in fail(["a = b"])
+    assert "MinydraWrongArgumentException" in fail(["a= b"])
+
+
+def test_fail_dot():
+    assert "MinydraWrongArgumentException" in fail([".a=3"])
