@@ -120,3 +120,25 @@ Out[6]: True
 In [7]: args.items()
 Out[7]: dict_items([('foo', 'bar'), ('yes', {'no': {'maybe': 'idontknow'}})])
 ```
+
+## Forcing types
+
+Adding `___<type>` to a key will force this type to the value:
+
+```
+$ python examples/decorator.py n_jobs___str=04 job=01 chips___list=hello 
+╭────────────────────────────────────────╮
+│ chips  : ['h', 'e', 'l', 'l', 'o']     │
+│ job    : 1                             │
+│ n_jobs : 04                            │
+╰────────────────────────────────────────╯
+```
+
+Known types are defined in `Parser.known_types` and the separator (`___`) in `Parser.type_separator`
+
+```python
+In [1]: from minydra import Parser
+
+In [2]: Parser.known_types
+Out[2]: {'bool', 'dict', 'float', 'int', 'list', 'set', 'str'}
+```

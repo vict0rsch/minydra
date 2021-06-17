@@ -9,6 +9,19 @@ from minydra.dict import MinyDict
 
 
 class Parser:
+
+    known_types = {
+        "bool",
+        "int",
+        "float",
+        "dict",
+        "list",
+        "str",
+        "set",
+    }
+
+    type_separator = "___"
+
     def __init__(
         self,
         verbose=0,
@@ -116,7 +129,25 @@ class Parser:
         return
 
     @staticmethod
-    def _parse_arg(arg):
+    def _force_type(value, type_str):
+
+        if type_str == "bool":
+            return bool(value)
+        if type_str == "int":
+            return int(value)
+        if type_str == "float":
+            return float(value)
+        if type_str == "dict":
+            return dict(value)
+        if type_str == "list":
+            return list(value)
+        if type_str == "str":
+            return str(value)
+        if type_str == "set":
+            return set(value)
+
+    @staticmethod
+    def _parse_arg(arg, type_str=None):
         """
         Parses an argument: returns it if it is not a string, else:
             * parses to int
@@ -124,6 +155,8 @@ class Parser:
             * parses to bool
             * parses to a list
             * parses to a dict
+
+        Type can be forced by appending `___type` to the key
 
         Recursive calls are applied to list and dict items
 
@@ -135,6 +168,9 @@ class Parser:
         """
         if not isinstance(arg, str):
             return arg
+
+        if type_str is not None:
+            return Parser._force_type(arg, type_str)
 
         if arg.isdigit():
             return int(arg)
@@ -184,9 +220,13 @@ class Parser:
 
             if parse_env:
                 v = Parser.set_env(v, warn_env, console)
-
-            sane[k] = Parser._parse_arg(v)
-
+            type_str = None
+            if Parser.type_separator in k:
+                candidate_k, candidate_type_str = k.split(Parser.type_separator)
+                if candidate_type_str in Parser.known_types:
+                    type_str = candidate_type_str
+                    k = candidate_k
+            sane[k] = Parser._parse_arg(v, type_str)
         return sane
 
     @staticmethod

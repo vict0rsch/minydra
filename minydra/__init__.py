@@ -1,6 +1,6 @@
 from .parser import Parser
 
-__version__ = "0.1.0"
+__version__ = "0.1.2"
 
 
 def parse_args(
