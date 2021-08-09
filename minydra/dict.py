@@ -96,7 +96,7 @@ class MinyDict(dict):
             )
         super().__setitem__(name, value)
 
-    def pretty_print(self, level=0):
+    def pretty_print(self, level=0, return_string_only=False):
         """
         Recursively pretty print MinyDict's items.
         Returns itself to chain method calls
@@ -112,6 +112,7 @@ class MinyDict(dict):
 
         Args:
             level (int, optional): Recursion level for indentation. Defaults to 0.
+            return_string_only (bool): if True, it only returns the string instead of printing it
         """
         # capture output
         f = io.StringIO()
@@ -162,7 +163,7 @@ class MinyDict(dict):
                 max_len = term_width
 
             # box top border
-            new_lines = ["╭" + "─" * (max_len + 2) + "╮"]
+            new_lines = ["|" + "-" * (max_len + 2) + "|"]
 
             # add lines
             for line in lines:
@@ -179,11 +180,15 @@ class MinyDict(dict):
                     # the line was split: indent to match the key's `:`
                     if s > 0:
                         subline = " " * (line.find(":") + 2) + subline
-                    new_lines.append(f"│ {subline:{max_len}} │")
+                    new_lines.append(f"| {subline:{max_len}} |")
 
             # box bottom border
-            new_lines += ["╰" + "─" * (max_len + 2) + "╯"]
+            new_lines += ["|" + "-" * (max_len + 2) + "|"]
 
             # print box
-            print("\n".join(new_lines))
+            print_str = "\n".join(new_lines)
+            if return_string_only:
+                return print_str
+
+            print(print_str)
         return self
