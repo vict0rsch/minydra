@@ -30,6 +30,16 @@ if __name__ == "__main__":
     args = parser.args.pretty_print().resolve().pretty_print() # notice .resolve() transforms dotted.keys into nested dicts
 ```
 
+[`examples/resolved_args.py`](examples/resolved_args.py)
+
+```python
+from minydra import resolved_args
+
+if __name__ == "__main__":
+    args = resolved_args()
+    args.pretty_print()
+```
+
 [`examples/decorator.py`](examples/decorator.py)
 
 ```python
