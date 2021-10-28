@@ -2,5 +2,5 @@ class MinydraWrongArgumentException(Exception):
     pass
 
 
-class MinyDictWrongAttributeException(Exception):
+class MinyDictProtectedgAttributeException(Exception):
     pass

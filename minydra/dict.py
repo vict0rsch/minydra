@@ -1,5 +1,5 @@
 from typing import Any
-from minydra.exceptions import MinyDictWrongAttributeException
+from minydra.exceptions import MinyDictProtectedgAttributeException
 from minydra.utils import split_line
 import io
 from contextlib import redirect_stdout
@@ -16,6 +16,13 @@ class MinyDict(dict):
 
     __getattr__ = dict.get
     __delattr__ = dict.__delitem__
+    _PRIVATE_KEYS = {
+        "resolve",
+        "pretty_print",
+        "_resolve_nests",
+        "_resolve_dots",
+        "_PRIVATE_KEYS",
+    }
 
     def resolve(self):
         """
@@ -83,18 +90,18 @@ class MinyDict(dict):
             value (Any): Value for the attribute.
 
         Raises:
-            MinyDictWrongAttributeException: The attribute is protected
+            MinyDictProtectedgAttributeException: The attribute is protected
         """
-        if name in set(dir(dict())) | {
-            "resolve",
-            "pretty_print",
-            "_resolve_nests",
-            "_resolve_dots",
-        }:
-            raise MinyDictWrongAttributeException(
-                f"`{name}` is a  protected attribute of MinyDict"
+        if name in set(dir(dict())) | self._PRIVATE_KEYS:
+            raise MinyDictProtectedgAttributeException(
+                f"`{name}` is a  protected attribute of MinyDict."
+                + " Have a look at MinyDict._PRIVATE_KEYS"
             )
         super().__setitem__(name, value)
+
+    def __dir__(self):
+        attrs = set(dir(dict())) | self._PRIVATE_KEYS | set(self.keys())
+        return sorted(attrs)
 
     def pretty_print(self, level=0):
         """
