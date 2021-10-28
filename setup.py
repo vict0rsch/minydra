@@ -1,4 +1,5 @@
 import setuptools
+
 import minydra
 
 with open("README.md", "r") as fh:
