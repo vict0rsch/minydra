@@ -12,6 +12,8 @@ Easily parse arbitrary arguments from the command line without dependencies:
 pip install minydra
 ```
 
+`minydra` is tested on Python `3.7`, `3.8` and `3.9`.
+
 ## Usage
 
 [`examples/parser.py`](examples/parser.py)
