@@ -1,11 +1,11 @@
-import sys
+import ast
 import os
 import re
-import ast
+import sys
 
-from minydra.exceptions import MinydraWrongArgumentException
 from minydra.console import MinyConsole
 from minydra.dict import MinyDict
+from minydra.exceptions import MinydraWrongArgumentException
 
 
 class Parser:

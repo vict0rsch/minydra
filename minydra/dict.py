@@ -1,9 +1,12 @@
-from typing import Any
-from minydra.exceptions import MinyDictProtectedgAttributeException
-from minydra.utils import split_line
+# Largely inspired by https://github.com/mewwts/addict/blob/master/addict/addict.py
+
+import copy
 import io
-from contextlib import redirect_stdout
 import shutil
+from contextlib import redirect_stdout
+from typing import Any
+
+from minydra.utils import split_line
 
 
 class MinyDict(dict):
@@ -15,14 +18,126 @@ class MinyDict(dict):
     """
 
     __getattr__ = dict.get
+    __getitem__ = dict.get
     __delattr__ = dict.__delitem__
-    _PRIVATE_KEYS = {
-        "resolve",
-        "pretty_print",
-        "_resolve_nests",
-        "_resolve_dots",
-        "_PRIVATE_KEYS",
-    }
+    _frozen = False
+
+    def __init__(self, *args, **kwargs):
+        object.__setattr__(self, "_frozen", False)
+        for arg in args:
+            if not arg:
+                continue
+            elif isinstance(arg, dict):
+                for key, val in arg.items():
+                    self[key] = self._hook(val)
+            elif isinstance(arg, tuple) and (not isinstance(arg[0], tuple)):
+                self[arg[0]] = self._hook(arg[1])
+            else:
+                for key, val in iter(arg):
+                    self[key] = self._hook(val)
+
+        for key, val in kwargs.items():
+            self[key] = self._hook(val)
+
+    @classmethod
+    def _hook(cls, item):
+        if isinstance(item, MinyDict):
+            return item
+        if isinstance(item, dict):
+            return cls(item)
+        elif isinstance(item, (list, tuple)):
+            return type(item)(cls._hook(elem) for elem in item)
+        return item
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """
+        Set an attribute if it is not protected. Protected attributes
+        are the set of native dict's attributes and MinyDict's custom
+        methods
+
+        Args:
+            name (str): name of the attribute to set.
+            value (Any): Value for the attribute.
+
+        Raises:
+            AttributeError: The attribute is protected
+        """
+        if hasattr(self.__class__, name):
+            raise AttributeError(f"`{name}` is a  protected attribute of MinyDict.")
+        self.__setitem__(name, value)
+
+    def __setitem__(self, name, value):
+        isFrozen = hasattr(self, "_frozen") and object.__getattribute__(self, "_frozen")
+        if isFrozen:
+            raise AttributeError(
+                "This MinyDict is frozen: no attribute can be changed."
+                + " Use .unfreeze() to change this."
+            )
+        if isinstance(value, dict):
+            value = MinyDict(value)
+            value._resolve_nests()
+
+        super().__setitem__(name, value)
+
+        if name == "_frozen":
+            self.freeze(value)
+
+    def __dir__(self):
+        attrs = set(dir(self.__class__)) | set(self.keys())
+        return sorted([a for a in attrs if isinstance(a, str)])
+
+    def update(self, *args, **kwargs):
+        other = {}
+        if args:
+            if len(args) > 1:
+                raise TypeError()
+            other.update(args[0])
+        other.update(kwargs)
+        for k, v in other.items():
+            if (
+                (k not in self)
+                or (not isinstance(self[k], dict))
+                or (not isinstance(v, dict))
+            ):
+                self[k] = v
+            else:
+                self[k].update(v)
+
+    def copy(self):
+        return copy.copy(self)
+
+    def deepcopy(self):
+        return copy.deepcopy(self)
+
+    def freeze(self, shouldFreeze=True):
+        object.__setattr__(self, "_frozen", shouldFreeze)
+        for val in self.values():
+            if isinstance(val, MinyDict):
+                val.freeze(shouldFreeze)
+
+    def to_dict(self):
+        base = {}
+        for key, value in self.items():
+            if isinstance(value, type(self)):
+                base[key] = value.to_dict()
+            elif isinstance(value, (list, tuple)):
+                base[key] = type(value)(
+                    item.to_dict() if isinstance(item, type(self)) else item
+                    for item in value
+                )
+            else:
+                base[key] = value
+        return base
+
+    def unfreeze(self):
+        self.freeze(False)
+
+    def __deepcopy__(self, memo):
+        other = self.__class__()
+        memo[id(self)] = other
+        for key, value in self.items():
+            other[copy.deepcopy(key, memo)] = copy.deepcopy(value, memo)
+        return other
 
     def resolve(self):
         """
@@ -64,44 +179,32 @@ class MinyDict(dict):
         """
         for k in list(self.keys()):
             v = self[k]
-            if "." not in k:
+            if isinstance(v, MinyDict):
+                self[k] = self[k]._resolve_dots()
+            if not isinstance(k, str) or "." not in k:
                 continue
             else:
+                # Key has has dots:
+                # iterate over subkeys
+                # assign value to final sub-key
                 sub_keys = k.split(".")
                 d = self
                 for sk in sub_keys[:-1]:
-                    if not isinstance(d, (dict, MinyDict)) or sk not in d:
+                    if sk not in d:  # sub key does not exist in original obj
+                        # create new sub dict
                         d[sk] = MinyDict()
-                    if isinstance(d, dict):
-                        d = MinyDict(d)
+                    if isinstance(d, dict) and not isinstance(d, MinyDict):
+                        # convert dict to MinyDict
+                        # and resolve its dotted keys
+                        d = MinyDict(d)._resolve_dots()
+                    if isinstance(d[sk], MinyDict):
+                        # next sub dict is a MinyDict:
+                        # resolve its dots
+                        d[sk] = d[sk]._resolve_dots()
                     d = d[sk]
                 d[sub_keys[-1]] = v
                 del self[k]
         return self
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        """
-        Set an attribute if it is not protected. Protected attributes
-        are the set of native dict's attributes and MinyDict's custom
-        methods
-
-        Args:
-            name (str): name of the attribute to set.
-            value (Any): Value for the attribute.
-
-        Raises:
-            MinyDictProtectedgAttributeException: The attribute is protected
-        """
-        if name in set(dir(dict())) | self._PRIVATE_KEYS:
-            raise MinyDictProtectedgAttributeException(
-                f"`{name}` is a  protected attribute of MinyDict."
-                + " Have a look at MinyDict._PRIVATE_KEYS"
-            )
-        super().__setitem__(name, value)
-
-    def __dir__(self):
-        attrs = set(dir(dict())) | self._PRIVATE_KEYS | set(self.keys())
-        return sorted(attrs)
 
     def pretty_print(self, level=0):
         """

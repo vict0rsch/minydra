@@ -1,3 +1,5 @@
+import pytest
+
 from minydra.dict import MinyDict
 
 
@@ -30,11 +32,44 @@ def test_attr():
 
 
 def test_resolve():
+    d = MinyDict({"a.b.c": 2})
+    d.resolve()
+    assert d == MinyDict({"a": {"b": {"c": 2}}})
+
     d = MinyDict({"a.b.c": 2, "a.b.d": 3})
     d.resolve()
     assert d == MinyDict({"a": {"b": {"c": 2, "d": 3}}})
+
+    d = MinyDict({"a.b.c": 2, "a.b.d": {"r.v": 4}, "x": {"o.p": 3}})
+    d.resolve()
+    assert d == MinyDict(
+        {"x": {"o": {"p": 3}}, "a": {"b": {"c": 2, "d": {"r": {"v": 4}}}}}
+    )
 
 
 def test_pretty_print():
     d = MinyDict({"a": 1, "b": 2, 4: "x", "r": {"t": 5}})
     d.pretty_print()
+
+
+def test_dir():
+    d = MinyDict({"a": 1, "b": 2, 4: "x", "r": {"t": 5}})
+    assert "a" in dir(d)
+    assert "b" in dir(d)
+    assert "r" in dir(d)
+    assert 4 in d.keys()
+
+
+def test_protected():
+    d = MinyDict()
+    with pytest.raises(AttributeError):
+        d.update = 4
+
+
+def test_freeze():
+    d = MinyDict({"a": 1, "b": 2, 4: "x", "r": {"t": 5}})
+    d.freeze()
+    with pytest.raises(AttributeError):
+        d.r.t = 4
+    d.unfreeze()
+    d.r.t = 4

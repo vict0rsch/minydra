@@ -1,4 +1,5 @@
 import pytest
+
 from minydra import Parser
 from minydra.exceptions import MinydraWrongArgumentException
 

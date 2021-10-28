@@ -1,8 +1,10 @@
-from minydra.dict import MinyDict
-import subprocess
-from minydra.exceptions import MinydraWrongArgumentException
 import io
+import subprocess
 from contextlib import redirect_stdout
+
+from minydra.dict import MinyDict
+
+# from minydra.exceptions import MinydraWrongArgumentException
 
 COMMAND = [
     "python",
