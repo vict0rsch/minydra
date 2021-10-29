@@ -79,11 +79,11 @@ $ python decorator.py outdir=$HOME/project save -log learning_rate=1e-4 batch_si
 
 ```
 $ python decorator.py server.conf.port=8000
-╭─────────────────────────╮
-│ server                  │
-│     conf                │
-│         port : 8000     │
-╰─────────────────────────╯
+╭─────────────────────╮
+│ server              │
+│   conf              │
+│     port : 8000     │
+╰─────────────────────╯
 ```
 
 * Using `ast.literal_eval(value)`, `minydra` will try and parse more complex values for arguments as lists or dicts. Those should be specified as strings:
@@ -106,32 +106,107 @@ a `MinyDict` inherits from `dict` so usual methods work `.keys()`, `.items()` et
 
 In [1]: from minydra.dict import MinyDict
 
-In [2]: args = MinyDict({"foo": "bar", "yes.no.maybe": "idontknow"}).pretty_print()
+In [2]: args = MinyDict({"foo": "bar", "yes.no.maybe": "idontknow"}).pretty_print(); args
 ╭──────────────────────────────╮
 │ foo          : bar           │
 │ yes.no.maybe : idontknow     │
 ╰──────────────────────────────╯
+Out[2]: {'foo': 'bar', 'yes.no.maybe': 'idontknow'}
 
-In [3]: args.resolve().pretty_print()
-╭───────────────────────────────╮
-│ foo : bar                     │
-│ yes                           │
-│     no                        │
-│         maybe : idontknow     │
-╰───────────────────────────────╯
+In [3]: args.resolve().pretty_print(); args
+╭───────────────────────────╮
+│ foo : bar                 │
+│ yes                       │
+│   no                      │
+│     maybe : idontknow     │
+╰───────────────────────────╯
+Out[3]: {'foo': 'bar', 'yes': {'no': {'maybe': 'idontknow'}}}
 
-In [4]: "foo" in args
-Out[4]: True
+In [4]: args.yes.no.maybe
+Out[4]: "idontknow"
 
-In [5]: "rick" in args
-Out[5]: False
+In [5]: "foo" in args
+Out[5]: True
 
-In [6]: args.morty is None
-Out[6]: True
+In [6]: "rick" in args
+Out[6]: False
 
-In [7]: args.items()
-Out[7]: dict_items([('foo', 'bar'), ('yes', {'no': {'maybe': 'idontknow'}})])
+In [7]: args.morty is None
+Out[7]: True
+
+In [8]: args.items()
+Out[8]: dict_items([('foo', 'bar'), ('yes', {'no': {'maybe': 'idontknow'}})])
 ```
+
+### Dumping/Loading
+
+You can save and read `MinyDict` to/from disk in two formats: `json` and `pickle`.
+
+Both `to_pickle` and `to_json` have 3 arguments:
+
+1. `file_path` as a `str` or `pathlib.Path` which is resolved:
+    1. expand env variable (`$MYDIR` for instance)
+    2. expand user (`~`)
+    3. make absolute
+2. `return_path` which defaults to `True`. If `True` `to_json` and `to_pickle` return the path of the created object
+3. `allow_overwrites` which defaults to `True`. If `False` and `path` exists, a `FileExistsError` will be raised. Otherwise creates/overwrites the file at `file_path`
+4. `verbose` which defaults to `0`. If `>0` prints the path of the created object
+
+#### `json`
+
+```python
+In [1]: from minydra.dict import MinyDict
+
+In [2]: args = MinyDict({"foo": "bar", "yes.no.maybe": "idontknow"}).resolve(); args
+Out[2]: {'foo': 'bar', 'yes': {'no': {'maybe': 'idontknow'}}}
+
+In [3]: args.to_json("./opts.json")
+
+In [4]: args.to_json("./opts.json", verbose=1)
+Json dumped to: /Users/victor/Documents/Github/vict0rsch/minydra/opts.json
+
+In [5]: MinyDict.from_json("opts.json")
+Out[5]: {'foo': 'bar', 'yes': {'no': {'maybe': 'idontknow'}}}
+```
+
+#### `pickle`
+
+```python
+from minydra.dict import MinyDict
+
+args = MinyDict({"foo": "bar", "yes.no.maybe": "idontknow"}).resolve().pretty_print()
+assert args == MinyDict.from_pickle(args.to_pickle("opts.pkl", return_path=True))
+╭───────────────────────────╮
+│ foo : bar                 │
+│ yes                       │
+│   no                      │
+│     maybe : idontknow     │
+╰───────────────────────────╯
+```
+
+[`examples/dumps.py`](examples/dumps.py)
+
+```
+python dumps.py path="./myargs.pkl" format=pickle cleanup
+╭────────────────────────────╮
+│ cleanup : True             │
+│ format  : pickle           │
+│ path    : ./myargs.pkl     │
+╰────────────────────────────╯
+Dumped args to /Users/victor/Documents/Github/vict0rsch/minydra/examples/myargs.pkl
+Cleaning up
+```
+
+#### `pretty_print`
+
+Prints the `Minydict` in a box, with dicts properly indented. A few arguments:
+
+1. `indents`, which defaults to `2`: the amount of indentation for nested dictionaries
+2. `sort_keys`, which defaults to `True`: whether or not to alphabetically sort the keys before printing
+
+#### `to_dict`
+
+To produce a native Python `dict`, use `args.to_dict()`
 
 ## Forcing types
 
@@ -154,3 +229,7 @@ In [1]: from minydra import Parser
 In [2]: Parser.known_types
 Out[2]: {'bool', 'dict', 'float', 'int', 'list', 'set', 'str'}
 ```
+
+## Protected attributes
+
+`MinyDict`'s methods (including the `dict` class's) are protected, they are read-only and you cannot therefore set _attributes_ with there names, like `args.get = 2`. If you do need to have a `get` argument, you can access it through _items_: `args["get"] = 2`.
