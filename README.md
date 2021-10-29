@@ -172,28 +172,27 @@ Out[5]: {'foo': 'bar', 'yes': {'no': {'maybe': 'idontknow'}}}
 #### `pickle`
 
 ```python
-from minydra.dict import MinyDict
+In [1]: from minydra.dict import MinyDict
 
-args = MinyDict({"foo": "bar", "yes.no.maybe": "idontknow"}).resolve().pretty_print()
-assert args == MinyDict.from_pickle(args.to_pickle("opts.pkl", return_path=True))
-╭───────────────────────────╮
-│ foo : bar                 │
-│ yes                       │
-│   no                      │
-│     maybe : idontknow     │
-╰───────────────────────────╯
+In [2]: args = MinyDict({"foo": "bar", "yes.no.maybe": "idontknow"}).resolve()
+
+In [3]: print(args)
+{'foo': 'bar', 'yes': {'no': {'maybe': 'idontknow'}}}
+
+In [4]: assert args == MinyDict.from_pickle(args.to_pickle("opts.pkl"))
 ```
 
 [`examples/dumps.py`](examples/dumps.py)
 
 ```
-python dumps.py path="./myargs.pkl" format=pickle cleanup
+python examples/dumps.py path="./myargs.pkl" format=pickle cleanup
+
 ╭────────────────────────────╮
 │ cleanup : True             │
 │ format  : pickle           │
 │ path    : ./myargs.pkl     │
 ╰────────────────────────────╯
-Dumped args to /Users/victor/Documents/Github/vict0rsch/minydra/examples/myargs.pkl
+Dumped args to /Users/victor/Documents/Github/vict0rsch/minydra/myargs.pkl
 Cleaning up
 ```
 
@@ -233,3 +232,19 @@ Out[2]: {'bool', 'dict', 'float', 'int', 'list', 'set', 'str'}
 ## Protected attributes
 
 `MinyDict`'s methods (including the `dict` class's) are protected, they are read-only and you cannot therefore set _attributes_ with there names, like `args.get = 2`. If you do need to have a `get` argument, you can access it through _items_: `args["get"] = 2`.
+
+Try with [`examples/protected.py`](examples/parser.py):
+
+```
+python examples/protected.py server.conf.port=8000 get=3   
+╭─────────────────────╮
+│ get    : 3          │
+│ server              │
+│   conf              │
+│     port : 8000     │
+╰─────────────────────╯
+<built-in method get of MinyDict object at 0x100ccd4a0>
+3
+dict_items([('get', 3), ('server', {'conf': {'port': 8000}})])
+{'conf': {'port': 8000}}
+```
