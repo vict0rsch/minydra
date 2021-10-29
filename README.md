@@ -1,6 +1,6 @@
 # minydra 🦎
 
-Minimal Python command-line parser inspired by Facebook's Hydra + dot-accessible dictionary.
+Minimal Python command-line parser inspired by Facebook's Hydra + dot-accessible nested dictionaries.
 
 Easily parse arbitrary arguments from the command line without dependencies:
 
