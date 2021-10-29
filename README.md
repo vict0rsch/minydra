@@ -96,6 +96,28 @@ $ python examples/decorator.py layers="[1, 2, 3]" norms="{'conv': 'batch', 'epsi
 ╰──────────────────────────────────────────────────╯
 ```
 
+### Forcing types
+
+Adding `___<type>` to a key will force this type to the value. Notice how `01` is parsed to an integer `1` but `04` is parsed to a string (as specified) `"04"`, and `hello` is parsed to a `list`, not kept as a string
+
+```
+$ python examples/decorator.py n_jobs___str=04 job=01 chips___list=hello 
+╭────────────────────────────────────────╮
+│ chips  : ['h', 'e', 'l', 'l', 'o']     │
+│ job    : 1                             │
+│ n_jobs : 04                            │
+╰────────────────────────────────────────╯
+```
+
+Known types are defined in `Parser.known_types` and the separator (`___`) in `Parser.type_separator`
+
+```python
+In [1]: from minydra import Parser
+
+In [2]: Parser.known_types
+Out[2]: {'bool', 'dict', 'float', 'int', 'list', 'set', 'str'}
+```
+
 ## MinyDict
 
 Minydra's args are a custom lightweight wrapper around native `dict` which allows for dot access (`args.key`), resolving dotted keys into nested dicts and pretty printing sorted keys in a box with nested dicts indented. If a key does not exist, it will not fail, rather return None (as `dict.get(key, None)`).
@@ -207,29 +229,7 @@ Prints the `Minydict` in a box, with dicts properly indented. A few arguments:
 
 To produce a native Python `dict`, use `args.to_dict()`
 
-## Forcing types
-
-Adding `___<type>` to a key will force this type to the value:
-
-```
-$ python examples/decorator.py n_jobs___str=04 job=01 chips___list=hello 
-╭────────────────────────────────────────╮
-│ chips  : ['h', 'e', 'l', 'l', 'o']     │
-│ job    : 1                             │
-│ n_jobs : 04                            │
-╰────────────────────────────────────────╯
-```
-
-Known types are defined in `Parser.known_types` and the separator (`___`) in `Parser.type_separator`
-
-```python
-In [1]: from minydra import Parser
-
-In [2]: Parser.known_types
-Out[2]: {'bool', 'dict', 'float', 'int', 'list', 'set', 'str'}
-```
-
-## Protected attributes
+### Protected attributes
 
 `MinyDict`'s methods (including the `dict` class's) are protected, they are read-only and you cannot therefore set _attributes_ with there names, like `args.get = 2`. If you do need to have a `get` argument, you can access it through _items_: `args["get"] = 2`.
 
