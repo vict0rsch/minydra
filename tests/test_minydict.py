@@ -64,6 +64,7 @@ def test_protected():
     d = MinyDict()
     with pytest.raises(AttributeError):
         d.update = 4
+    d["update"] = 4
 
 
 def test_freeze():
