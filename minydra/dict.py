@@ -346,7 +346,13 @@ class MinyDict(dict):
         f = io.StringIO()
         with redirect_stdout(f):
             # indent according to nesting level in the dictionnary
-            indent = level * indents * " "
+            indent = ""
+            for _ in range(level - 1):
+                indent += "│" + " " * (indents - 1)
+            if level > 0:
+                indent += "│"
+            # indent = level * indents * " "
+            # indent = indent[:-1] + "╰"
 
             # format to equal length before the keys' `:`
             ml = max([len(str(k)) for k in self] + [0]) + 1
