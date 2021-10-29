@@ -104,6 +104,7 @@ class MinyDict(dict):
                 self[k] = v
             else:
                 self[k].update(v)
+        return self
 
     def copy(self):
         return copy.copy(self)
@@ -325,7 +326,8 @@ class MinyDict(dict):
         Returns:
             MinyDict: self
         """
-        return self._pretty_print_rec(indents, sort_keys, 0)
+        self._pretty_print_rec(indents, sort_keys, 0)
+        return self
 
     def _pretty_print_rec(self, indents, sort_keys, level):
         """
@@ -350,13 +352,11 @@ class MinyDict(dict):
             ml = max([len(str(k)) for k in self] + [0]) + 1
 
             # print in alphabetical order if sort_keys is True
-            keys = list(self.keys())
-            idx_and_keys = enumerate(map(str, keys))
+            keys = map(str, self.keys())
             if sort_keys:
-                idx_and_keys = sorted(idx_and_keys, key=lambda x: x[1])
+                keys = sorted(keys)
 
-            for i in map(lambda ik: ik[0], idx_and_keys):
-                k = keys[i]
+            for k in keys:
                 v = self[k]
                 if "MinyDict" in str(type(v)):
                     # recursive pretty_print_rec call
@@ -419,4 +419,3 @@ class MinyDict(dict):
 
             # print box
             print("\n".join(new_lines))
-        return self
