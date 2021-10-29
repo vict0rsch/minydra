@@ -7,6 +7,9 @@ Easily parse arbitrary arguments from the command line without dependencies:
 ![example code](assets/code.png)
 ![example code](assets/run.png)
 
+![](https://img.shields.io/badge/coverage-88%25-success)
+![](https://img.shields.io/badge/version-0.1.3-informational)
+![](https://img.shields.io/badge/python-3.7%2B%20-orange)
 
 ```
 pip install minydra
