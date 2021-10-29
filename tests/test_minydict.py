@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from minydra.dict import MinyDict
@@ -74,3 +76,31 @@ def test_freeze():
         d.r.t = 4
     d.unfreeze()
     d.r.t = 4
+
+
+def test_dump_pickle():
+    d = MinyDict({"a": 1, "b": 2, 4: "x", "r": {"t": 5}})
+    p = Path(d.to_pickle("d.pkl"))
+    assert MinyDict.from_pickle(p) == d
+    p.unlink()
+
+
+def test_dump_json():
+    d = MinyDict({"a": 1, "b": 2, "u": "x", "r": {"t": 5}})
+    p = Path(d.to_json("d.json"))
+    assert MinyDict.from_json(p) == d
+    p.unlink()
+
+
+def test_dump_no_overwrite():
+    d = MinyDict({"a": 1, "b": 2, "u": "x", "r": {"t": 5}})
+    p = Path(d.to_json("d.json"))
+    with pytest.raises(FileExistsError):
+        d.to_json(p, allow_overwrite=False)
+    p.unlink()
+
+    p = Path(d.to_pickle("d.pickle"))
+    with pytest.raises(FileExistsError):
+        d.to_pickle(p, allow_overwrite=False)
+    assert MinyDict.from_pickle(p) == d
+    p.unlink()

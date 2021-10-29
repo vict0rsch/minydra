@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from minydra import resolved_args
 
 if __name__ == "__main__":

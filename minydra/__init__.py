@@ -1,5 +1,5 @@
+from .dict import MinyDict  # noqa: F401
 from .parser import Parser
-from .dict import MinyDict
 
 __version__ = "0.1.3"  # WIP: next release
 

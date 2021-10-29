@@ -8,7 +8,7 @@ import shutil
 from contextlib import redirect_stdout
 from typing import Any
 
-from minydra.utils import split_line, resolve
+from minydra.utils import resolve, split_line
 
 
 class MinyDict(dict):

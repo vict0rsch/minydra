@@ -199,6 +199,8 @@ Both `to_pickle` and `to_json` have 3 arguments:
 
 #### `json`
 
+*Warning:* the `json` standard does not accept ints as keys in dictionaries so `{3: 2}` would be dumped -- and therefore loaded -- as `{"3": 2}`.
+
 ```python
 In [1]: from minydra.dict import MinyDict
 

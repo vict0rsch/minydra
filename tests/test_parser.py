@@ -9,7 +9,8 @@ from minydra.dict import MinyDict
 COMMAND = [
     "python",
     "-c",
-    "from minydra import Parser; parser = Parser(); parser.args.resolve().pretty_print()",
+    "from minydra import Parser; parser = Parser();"
+    + " parser.args.resolve().pretty_print()",
 ]
 
 

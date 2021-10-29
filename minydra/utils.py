@@ -1,5 +1,5 @@
-from pathlib import Path
 from os.path import expandvars
+from pathlib import Path
 
 
 def split_line(line, length):

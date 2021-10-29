@@ -1,3 +1,6 @@
+import sys
+from unittest.mock import patch
+
 import pytest
 
 from minydra import Parser
@@ -5,16 +8,17 @@ from minydra.exceptions import MinydraWrongArgumentException
 
 
 def test_init():
-    _ = Parser()
-    _ = Parser(verbose=1)
-    _ = Parser(allow_overwrites=True)
-    _ = Parser(allow_overwrites=False)
-    _ = Parser(warn_overwrites=True)
-    _ = Parser(warn_overwrites=False)
-    _ = Parser(parse_env=False)
-    _ = Parser(parse_env=True)
-    _ = Parser(warn_env=False)
-    _ = Parser(warn_env=True)
+    with patch.object(sys, "argv", []):
+        _ = Parser()
+        _ = Parser(verbose=1)
+        _ = Parser(allow_overwrites=True)
+        _ = Parser(allow_overwrites=False)
+        _ = Parser(warn_overwrites=True)
+        _ = Parser(warn_overwrites=False)
+        _ = Parser(parse_env=False)
+        _ = Parser(parse_env=True)
+        _ = Parser(warn_env=False)
+        _ = Parser(warn_env=True)
 
 
 def test_check_args():
