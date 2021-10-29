@@ -2,11 +2,13 @@
 
 import copy
 import io
+import json
+import pickle as pkl
 import shutil
 from contextlib import redirect_stdout
 from typing import Any
 
-from minydra.utils import split_line
+from minydra.utils import split_line, resolve
 
 
 class MinyDict(dict):
@@ -109,11 +111,112 @@ class MinyDict(dict):
     def deepcopy(self):
         return copy.deepcopy(self)
 
+    def __deepcopy__(self, memo):
+        other = self.__class__()
+        memo[id(self)] = other
+        for key, value in self.items():
+            other[copy.deepcopy(key, memo)] = copy.deepcopy(value, memo)
+        return other
+
+    def __getnewargs__(self):
+        return tuple(self.items())
+
+    def __getstate__(self):
+        return self
+
+    def __setstate__(self, state):
+        self.update(state)
+
     def freeze(self, shouldFreeze=True):
         object.__setattr__(self, "_frozen", shouldFreeze)
         for val in self.values():
             if isinstance(val, MinyDict):
                 val.freeze(shouldFreeze)
+
+    def to_pickle(self, file_path, return_path=True, allow_overwrite=True, verbose=0):
+        """
+        Dumps the MinyDict to a pickle file.
+
+        Args:
+            file_path (str or pathlib.Path): path (and name) of the file to save to
+            return_path (bool, optional): Whether to return the resulting file's path
+                (as str). Defaults to True.
+            allow_overwrite (bool, optional): Whether to allow overwrites, or raise a
+                FileError if the file already exits. Defaults to True.
+            verbose (int, optional): >0 => print the path. Defaults to 0.
+
+        Returns:
+            Optional[str]: Path to the dumped file
+        """
+        p = resolve(file_path)
+
+        if not allow_overwrite and p.exists():
+            raise FileExistsError(
+                f"Error dumping the MinyDict: file {p} already exists."
+            )
+
+        with p.open("wb") as f:
+            pkl.dump(self, f)
+
+        if verbose > 0:
+            print("Pickled to:", str(p))
+
+        if return_path:
+            return str(p)
+
+    @classmethod
+    def from_pickle(self, file_path):
+        """
+        Reads a MinyDict from a pickle file.
+
+        Args:
+            file_path (str): Path to the file to load from.
+        """
+        p = resolve(file_path)
+        with p.open("rb") as f:
+            return pkl.load(f)
+
+    def to_json(self, file_path, return_path=True, allow_overwrite=True, verbose=0):
+        """
+        Dumps the MinyDict to a json file.
+
+        Args:
+            file_path (str or pathlib.Path): path (and name) of the file to save to
+            return_path (bool, optional): Whether to return the resulting file's path
+                (as str). Defaults to True.
+            allow_overwrite (bool, optional): Whether to allow overwrites, or raise a
+                FileError if the file already exits. Defaults to True.
+            verbose (int, optional): >0 => print the path. Defaults to 0.
+
+        Returns:
+            Optional[str]: Path to the dumped file
+        """
+        p = resolve(file_path)
+        if not allow_overwrite and p.exists():
+            raise FileExistsError(
+                f"Error dumping the MinyDict: file {p} already exists."
+            )
+
+        with p.open("w") as f:
+            json.dump(self.to_dict(), f)
+
+        if verbose > 0:
+            print("Json dumped to:", str(p))
+
+        if return_path:
+            return str(p)
+
+    @classmethod
+    def from_json(self, file_path):
+        """
+        Reads a MinyDict from a json file.
+
+        Args:
+            file_path (str): Path to the file to load from.
+        """
+        p = resolve(file_path)
+        with p.open("r") as f:
+            return MinyDict(json.load(f))
 
     def to_dict(self):
         base = {}
@@ -131,13 +234,6 @@ class MinyDict(dict):
 
     def unfreeze(self):
         self.freeze(False)
-
-    def __deepcopy__(self, memo):
-        other = self.__class__()
-        memo[id(self)] = other
-        for key, value in self.items():
-            other[copy.deepcopy(key, memo)] = copy.deepcopy(value, memo)
-        return other
 
     def resolve(self):
         """
@@ -206,7 +302,7 @@ class MinyDict(dict):
                 del self[k]
         return self
 
-    def pretty_print(self, level=0):
+    def pretty_print(self, indents=2, sort_keys=True):
         """
         Recursively pretty print MinyDict's items.
         Returns itself to chain method calls
@@ -221,28 +317,55 @@ class MinyDict(dict):
         ╰───────────────────────────────╯
 
         Args:
-            level (int, optional): Recursion level for indentation. Defaults to 0.
+            indents (int, optional): Number of space to indent nested dicts.
+                Defaults to 2.
+            sort_keys (bool, optional): Whether or not to sort dict keys before
+                printing. Defaults to True.
+
+        Returns:
+            MinyDict: self
+        """
+        return self._pretty_print_rec(indents, sort_keys, 0)
+
+    def _pretty_print_rec(self, indents, sort_keys, level):
+        """
+        Recursively pretty print MinyDict's items.
+        Returns itself to chain method calls
+
+        Args:
+            indents (int): Number of space to indent nested dicts Defaults to 2.
+            sort_keys (bool): Whether or not to sort dict keys before printing.
+            level (int): Recursion level for indentation.
+
+        Returns:
+            MinyDict: self
         """
         # capture output
         f = io.StringIO()
         with redirect_stdout(f):
             # indent according to nesting level in the dictionnary
-            indent = level * 4 * " "
+            indent = level * indents * " "
 
             # format to equal length before the keys' `:`
             ml = max([len(str(k)) for k in self] + [0]) + 1
 
-            # print in alphabetical order
-            for i in [
-                i[0]
-                for i in sorted(enumerate(map(str, self.keys())), key=lambda x: x[1])
-            ]:
-                k = list(self.keys())[i]
+            # print in alphabetical order if sort_keys is True
+            keys = list(self.keys())
+            idx_and_keys = enumerate(map(str, keys))
+            if sort_keys:
+                idx_and_keys = sorted(idx_and_keys, key=lambda x: x[1])
+
+            for i in map(lambda ik: ik[0], idx_and_keys):
+                k = keys[i]
                 v = self[k]
                 if "MinyDict" in str(type(v)):
-                    # recursive pretty_print call
+                    # recursive pretty_print_rec call
                     print(f"{indent}{k}")
-                    v.pretty_print(level + 1)
+                    v._pretty_print_rec(
+                        indents=indents,
+                        sort_keys=sort_keys,
+                        level=level + 1,
+                    )
                 else:
                     # print value
                     print(f"{indent}{k:{ml}}: {v}")
