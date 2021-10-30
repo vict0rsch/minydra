@@ -1,5 +1,6 @@
-from minydra import MinyDict, resolved_args
 from pathlib import Path
+
+from minydra import MinyDict, resolved_args
 
 if __name__ == "__main__":
     # parse arbitrary args in 1 line

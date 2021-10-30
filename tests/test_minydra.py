@@ -1,6 +1,7 @@
-import minydra
 import sys
 from unittest.mock import patch
+
+import minydra
 
 
 def test_resolved_args():

@@ -344,3 +344,13 @@ python examples/protected.py server.conf.port=8000 get=3
 dict_items([('get', 3), ('server', {'conf': {'port': 8000}})])
 {'conf': {'port': 8000}}
 ```
+
+## Tests
+
+Run tests and pre-commit checks (`isort`, `black`, `flake8`) with
+
+```
+$ pip install -r requirements-test.txt
+$ pre-commit run --all-files
+$ pytest -vv --cov=minydra tests/
+```
