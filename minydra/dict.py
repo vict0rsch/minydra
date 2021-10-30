@@ -96,7 +96,6 @@ class MinyDict(dict):
             other.update(args[0])
         other.update(kwargs)
         for k, v in other.items():
-            print(k, k in self)
             if strict and k not in self:
                 raise KeyError(
                     "Cannot create a non-existing key in strict mode "
