@@ -119,12 +119,12 @@ $ python decorator.py outdir=$HOME/project save -log learning_rate=1e-4 batch_si
 * dotted keys will be resolved to nested dictionary keys:
 
 ```
-$ python decorator.py server.conf.port=8000
-╭─────────────────────╮
-│ server              │
-│   conf              │
-│     port : 8000     │
-╰─────────────────────╯
+$ python examples/decorator.py server.conf.port=8000
+╭────────────────────╮
+│ server             │
+│ │conf              │
+│ │ │port : 8000     │
+╰────────────────────╯
 ```
 
 * Using `ast.literal_eval(value)`, `minydra` will try and parse more complex values for arguments as lists or dicts. Those should be specified as strings:
@@ -177,12 +177,12 @@ In [2]: args = MinyDict({"foo": "bar", "yes.no.maybe": "idontknow"}).pretty_prin
 Out[2]: {'foo': 'bar', 'yes.no.maybe': 'idontknow'}
 
 In [3]: args.resolve().pretty_print(); args
-╭───────────────────────────╮
-│ foo : bar                 │
-│ yes                       │
-│   no                      │
-│     maybe : idontknow     │
-╰───────────────────────────╯
+╭──────────────────────────╮
+│ foo : bar                │
+│ yes                      │
+│ │no                      │
+│ │ │maybe : idontknow     │
+╰──────────────────────────╯
 Out[3]: {'foo': 'bar', 'yes': {'no': {'maybe': 'idontknow'}}}
 
 In [4]: args.yes.no.maybe
@@ -333,12 +333,12 @@ Try with [`examples/protected.py`](examples/parser.py):
 
 ```
 python examples/protected.py server.conf.port=8000 get=3   
-╭─────────────────────╮
-│ get    : 3          │
-│ server              │
-│   conf              │
-│     port : 8000     │
-╰─────────────────────╯
+╭────────────────────╮
+│ get    : 3         │
+│ server             │
+│ │conf              │
+│ │ │port : 8000     │
+╰────────────────────╯
 <built-in method get of MinyDict object at 0x100ccd4a0>
 3
 dict_items([('get', 3), ('server', {'conf': {'port': 8000}})])
