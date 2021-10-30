@@ -9,7 +9,7 @@ def split_line(line, length):
     return [i for i in items if i.lstrip()]
 
 
-def resolve(path):
+def resolve_path(path):
     """
     fully resolve a path:
     resolve env vars ($HOME etc.) -> expand user (~) -> make absolute

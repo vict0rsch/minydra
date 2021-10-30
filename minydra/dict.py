@@ -8,7 +8,7 @@ import shutil
 from contextlib import redirect_stdout
 from typing import Any
 
-from minydra.utils import resolve, split_line
+from minydra.utils import resolve_path, split_line
 
 
 class MinyDict(dict):
@@ -154,7 +154,7 @@ class MinyDict(dict):
         Returns:
             Optional[str]: Path to the dumped file
         """
-        p = resolve(file_path)
+        p = resolve_path(file_path)
 
         if not allow_overwrite and p.exists():
             raise FileExistsError(
@@ -178,7 +178,7 @@ class MinyDict(dict):
         Args:
             file_path (str): Path to the file to load from.
         """
-        p = resolve(file_path)
+        p = resolve_path(file_path)
         with p.open("rb") as f:
             return pkl.load(f)
 
@@ -197,7 +197,7 @@ class MinyDict(dict):
         Returns:
             Optional[str]: Path to the dumped file
         """
-        p = resolve(file_path)
+        p = resolve_path(file_path)
         if not allow_overwrite and p.exists():
             raise FileExistsError(
                 f"Error dumping the MinyDict: file {p} already exists."
@@ -220,7 +220,7 @@ class MinyDict(dict):
         Args:
             file_path (str): Path to the file to load from.
         """
-        p = resolve(file_path)
+        p = resolve_path(file_path)
         with p.open("r") as f:
             return MinyDict(json.load(f))
 
