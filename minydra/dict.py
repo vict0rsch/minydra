@@ -81,9 +81,6 @@ class MinyDict(dict):
 
         super().__setitem__(name, value)
 
-        if name == "_frozen":
-            self.freeze(value)
-
     def __dir__(self):
         attrs = set(dir(self.__class__)) | set(self.keys())
         return sorted([a for a in attrs if isinstance(a, str)])
@@ -295,10 +292,10 @@ class MinyDict(dict):
                     if sk not in d:  # sub key does not exist in original obj
                         # create new sub dict
                         d[sk] = MinyDict()
-                    if isinstance(d, dict) and not isinstance(d, MinyDict):
-                        # convert dict to MinyDict
-                        # and resolve its dotted keys
-                        d = MinyDict(d)._resolve_dots()
+                    # if isinstance(d, dict) and not isinstance(d, MinyDict):
+                    #     # convert dict to MinyDict
+                    #     # and resolve its dotted keys
+                    #     d = MinyDict(d)._resolve_dots()
                     if isinstance(d[sk], MinyDict):
                         # next sub dict is a MinyDict:
                         # resolve its dots
@@ -380,7 +377,6 @@ class MinyDict(dict):
                 else:
                     # print value
                     print(f"{indent}{k:{ml}}: {v}")
-
         if level > 0:
             # lower recursive call: print to forward up to the
             # first (highest) call which will print the box
@@ -424,6 +420,10 @@ class MinyDict(dict):
                     if s > 0:
                         subline = " " * (line.find(":") + 2) + subline
                     new_lines.append(f"│ {subline:{max_len}} │")
+
+                if line_max < 1:
+                    # the previous for loop did not occur (no addition to new_lines)
+                    new_lines.append(f"│ {line} │")
 
             # box bottom border
             new_lines += ["╰" + "─" * (max_len + 2) + "╯"]
