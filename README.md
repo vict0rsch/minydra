@@ -17,6 +17,10 @@ pip install minydra
 
 `minydra` is tested on Python `3.7`, `3.8` and `3.9`.
 
+<p align="center">
+ <a href="#usage">Usage<a>
+</p>
+
 ## Usage
 
 [`examples/parser.py`](examples/parser.py)

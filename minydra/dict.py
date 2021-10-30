@@ -88,14 +88,20 @@ class MinyDict(dict):
         attrs = set(dir(self.__class__)) | set(self.keys())
         return sorted([a for a in attrs if isinstance(a, str)])
 
-    def update(self, *args, **kwargs):
+    def update(self, *args, strict=False, **kwargs):
         other = {}
         if args:
             if len(args) > 1:
-                raise TypeError()
+                raise TypeError("Can only update from 1 other dict")
             other.update(args[0])
         other.update(kwargs)
         for k, v in other.items():
+            print(k, k in self)
+            if strict and k not in self:
+                raise KeyError(
+                    "Cannot create a non-existing key in strict mode "
+                    + f'({{"{k}":{v}}}).'
+                )
             if (
                 (k not in self)
                 or (not isinstance(self[k], dict))
@@ -103,7 +109,7 @@ class MinyDict(dict):
             ):
                 self[k] = v
             else:
-                self[k].update(v)
+                self[k].update(v, strict=strict)
         return self
 
     def copy(self):
