@@ -18,7 +18,7 @@ pip install minydra
 `minydra` is tested on Python `3.7`, `3.8` and `3.9`.
 
 <p align="center">
- <a href="#getting-started"><strong></strong>Usage</strong></a>
+ <a href="#getting-started"><strong>Getting Started</strong></a>
  <a href="#forcing-types"><strong>Forcing types</strong></a>
  <a href="#minydict"><strong>MinyDict</strong></a>
  <a href="#strict-mode"><strong>Prevent typos</strong></a>
@@ -201,59 +201,6 @@ In [8]: args.items()
 Out[8]: dict_items([('foo', 'bar'), ('yes', {'no': {'maybe': 'idontknow'}})])
 ```
 
-### Strict Mode
-
-To prevent typos from the command-line, `MinyDict.update` method has a strict mode: updating a `MinyDict` with another dictionary using `strict=True` will raise a `KeyError` if the key does not already exist:
-
-```python
-from minydra import MinyDict, resolved_args
-
-if __name__ == "__main__":
-    # parse arbitrary args in 1 line
-    args = resolved_args()
-
-    # override default conf
-    if args.default:
-        path = args.default
-        # delete otherwise it will be used to update the conf which does not have
-        # "default" as a key, therefore raising a KeyError in strict mode
-        del args.default
-        args = MinyDict.from_json(path).update(args, strict=True)
-
-    args.pretty_print()
-```
-
-No typo:
-
-```
-$ python examples/strict.py default=./examples/demo.json log.logger.log_level=INFO
-╭──────────────────────────────╮
-│ log                          │
-│ │logger                      │
-│ │ │log_level   : INFO        │
-│ │ │logger_name : minydra     │
-│ │outdir  : /some/path        │
-│ │project : demo              │
-│ verbose : False              │
-╰──────────────────────────────╯
-```
-
-Typo:
-
-```
-$ python examples/strict.py default=./examples/demo.json log.logger.log_leveel=INFO
-Traceback (most recent call last):
-  File "/Users/victor/Documents/Github/vict0rsch/minydra/examples/strict.py", line 13, in <module>
-    args = MinyDict.from_json(path).update(args, strict=True)
-  File "/Users/victor/Documents/Github/vict0rsch/minydra/minydra/dict.py", line 111, in update
-    self[k].update(v, strict=strict)
-  File "/Users/victor/Documents/Github/vict0rsch/minydra/minydra/dict.py", line 111, in update
-    self[k].update(v, strict=strict)
-  File "/Users/victor/Documents/Github/vict0rsch/minydra/minydra/dict.py", line 100, in update
-    raise KeyError(
-KeyError: 'Cannot create a non-existing key in strict mode ({"log_leveel":INFO}).'
-```
-
 ### Dumping/Loading
 
 You can save and read `MinyDict` to/from disk in two formats: `json` and `pickle`.
@@ -312,6 +259,59 @@ python examples/dumps.py path="./myargs.pkl" format=pickle cleanup
 ╰────────────────────────────╯
 Dumped args to /Users/victor/Documents/Github/vict0rsch/minydra/myargs.pkl
 Cleaning up
+```
+
+### Strict Mode
+
+To prevent typos from the command-line, `MinyDict.update` method has a strict mode: updating a `MinyDict` with another dictionary using `strict=True` will raise a `KeyError` if the key does not already exist:
+
+```python
+from minydra import MinyDict, resolved_args
+
+if __name__ == "__main__":
+    # parse arbitrary args in 1 line
+    args = resolved_args()
+
+    # override default conf
+    if args.default:
+        path = args.default
+        # delete otherwise it will be used to update the conf which does not have
+        # "default" as a key, therefore raising a KeyError in strict mode
+        del args.default
+        args = MinyDict.from_json(path).update(args, strict=True)
+
+    args.pretty_print()
+```
+
+No typo:
+
+```
+$ python examples/strict.py default=./examples/demo.json log.logger.log_level=INFO
+╭──────────────────────────────╮
+│ log                          │
+│ │logger                      │
+│ │ │log_level   : INFO        │
+│ │ │logger_name : minydra     │
+│ │outdir  : /some/path        │
+│ │project : demo              │
+│ verbose : False              │
+╰──────────────────────────────╯
+```
+
+Typo:
+
+```
+$ python examples/strict.py default=./examples/demo.json log.logger.log_leveel=INFO
+Traceback (most recent call last):
+  File "/Users/victor/Documents/Github/vict0rsch/minydra/examples/strict.py", line 13, in <module>
+    args = MinyDict.from_json(path).update(args, strict=True)
+  File "/Users/victor/Documents/Github/vict0rsch/minydra/minydra/dict.py", line 111, in update
+    self[k].update(v, strict=strict)
+  File "/Users/victor/Documents/Github/vict0rsch/minydra/minydra/dict.py", line 111, in update
+    self[k].update(v, strict=strict)
+  File "/Users/victor/Documents/Github/vict0rsch/minydra/minydra/dict.py", line 100, in update
+    raise KeyError(
+KeyError: 'Cannot create a non-existing key in strict mode ({"log_leveel":INFO}).'
 ```
 
 #### `pretty_print`
