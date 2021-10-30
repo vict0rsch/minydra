@@ -19,9 +19,12 @@ pip install minydra
 
 <p align="center">
  <a href="#usage">Usage<a>
+ <a href="#usage">Forcing types<a>
+ <a href="#usage">Prevent typos<a>
+ <a href="#usage">MinyDict<a>
 </p>
 
-## Usage
+## Getting Started
 
 [`examples/parser.py`](examples/parser.py)
 
