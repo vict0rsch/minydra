@@ -142,7 +142,7 @@ $ python examples/decorator.py layers="[1, 2, 3]" norms="{'conv': 'batch', 'epsi
 Adding `___<type>` to a key will force this type to the value. Notice how `01` is parsed to an integer `1` but `04` is parsed to a string (as specified) `"04"`, and `hello` is parsed to a `list`, not kept as a string
 
 ```
-$ python examples/decorator.py n_jobs___str=04 job=01 chips___list=hello 
+$ python examples/decorator.py n_jobs___str=04 job=01 chips___list=hello
 ╭────────────────────────────────────────╮
 │ chips  : ['h', 'e', 'l', 'l', 'o']     │
 │ job    : 1                             │
@@ -157,6 +157,9 @@ In [1]: from minydra import Parser
 
 In [2]: Parser.known_types
 Out[2]: {'bool', 'dict', 'float', 'int', 'list', 'set', 'str'}
+
+In [3]: Parser.type_separator
+Out[3]: '___'
 ```
 
 ## MinyDict
@@ -332,7 +335,7 @@ To produce a native Python `dict`, use `args.to_dict()`
 Try with [`examples/protected.py`](examples/parser.py):
 
 ```
-python examples/protected.py server.conf.port=8000 get=3   
+python examples/protected.py server.conf.port=8000 get=3
 ╭────────────────────╮
 │ get    : 3         │
 │ server             │
