@@ -321,7 +321,7 @@ KeyError: 'Cannot create a non-existing key in strict mode ({"log_leveel":INFO})
 
 #### `pretty_print`
 
-Prints the `Minydict` in a box, with dicts properly indented. A few arguments:
+Prints the `MinyDict` in a box, with dicts properly indented. A few arguments:
 
 1. `indents`, which defaults to `2`: the amount of indentation for nested dictionaries
 2. `sort_keys`, which defaults to `True`: whether or not to alphabetically sort the keys before printing
