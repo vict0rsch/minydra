@@ -75,10 +75,10 @@ This example showcases a complete "miny-workflow":
 1. parse arbitrary args
 2. load a configuration file
 3. update that configuration with the command-line args
-    4. Optionally [prevent typos with `strict` mode](#strict-mode)
-5. freeze the args so no later piece of code alters them
-6. pretty-prints them for user-friendliness
-7. saves resulting config to a file, illustrating dot-accessible nested (miny) dicts
+  * Optionally [prevent typos with `strict` mode](#strict-mode)
+4. freeze the args so no later piece of code alters them
+5. pretty-prints them for user-friendliness
+6. saves resulting config to a file, illustrating dot-accessible nested (miny) dicts
 
 Code: [**`demo.py`**](demo.py)
 
@@ -161,6 +161,8 @@ if __name__ == "__main__":
 
     args.pretty_print()
 
+    # notice the to_X() methods return the path to the created file:
+
     if format == "json":
         dumped = Path(args.to_json(args.path or "./args.json"))
     elif format == "pickle":
@@ -175,6 +177,26 @@ if __name__ == "__main__":
         dumped.unlink()
     else:
         print("No cleanup")
+```
+
+Command
+
+```bash
+python examples/dumps.py path="./myargs.pkl" format=pickle cleanup
+python examples/dumps.py path="./myargs.yaml" format=yaml cleanup
+python examples/dumps.py path="./myargs.json" format=json cleanup
+```
+
+Output (almost identical, except for the paths/formats):
+
+```text
+╭────────────────────────────╮
+│ cleanup : True             │
+│ format  : pickle           │
+│ path    : ./myargs.pkl     │
+╰────────────────────────────╯
+Dumped args to /Users/victor/Documents/Github/vict0rsch/minydra/myargs.pkl
+Cleaning up
 ```
 
 ## Strict mode
