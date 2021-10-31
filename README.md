@@ -99,6 +99,8 @@ if __name__ == "__main__":
     main()
 ```
 
+<br/><br/>
+
 ## Parsing
 
 * Simple strings are parsed to `float` and `int` automatically.
@@ -138,6 +140,8 @@ $ python examples/decorator.py layers="[1, 2, 3]" norms="{'conv': 'batch', 'epsi
 ╰──────────────────────────────────────────────────╯
 ```
 
+<br/>
+
 ### Forcing types
 
 Adding `___<type>` to a key will force this type to the value. Notice how `01` is parsed to an integer `1` but `04` is parsed to a string (as specified) `"04"`, and `hello` is parsed to a `list`, not kept as a string
@@ -162,6 +166,8 @@ Out[2]: {'bool', 'float', 'int', 'str'}
 In [3]: Parser.type_separator
 Out[3]: '___'
 ```
+
+<br/><br/>
 
 ## MinyDict
 
@@ -204,6 +210,8 @@ Out[7]: True
 In [8]: args.items()
 Out[8]: dict_items([('foo', 'bar'), ('yes', {'no': {'maybe': 'idontknow'}})])
 ```
+
+<br/>
 
 ### Dumping/Loading
 
@@ -266,6 +274,8 @@ Dumped args to /Users/victor/Documents/Github/vict0rsch/minydra/myargs.pkl
 Cleaning up
 ```
 
+<br/>
+
 ### Strict Mode
 
 To prevent typos from the command-line, the `MinyDict.update` method has a strict mode: updating a `MinyDict` with another one using `strict=True` will raise a `KeyError` if the key does not already exist:
@@ -319,16 +329,22 @@ Traceback (most recent call last):
 KeyError: 'Cannot create a non-existing key in strict mode ({"log_leveel":INFO}).'
 ```
 
-#### `pretty_print`
+<br/>
+
+### `pretty_print`
 
 Prints the `MinyDict` in a box, with dicts properly indented. A few arguments:
 
 1. `indents`, which defaults to `2`: the amount of indentation for nested dictionaries
 2. `sort_keys`, which defaults to `True`: whether or not to alphabetically sort the keys before printing
 
-#### `to_dict`
+<br/>
+
+### `to_dict`
 
 To produce a native Python `dict`, use `args.to_dict()`
+
+<br/>
 
 ### Protected attributes
 
@@ -349,6 +365,8 @@ python examples/protected.py server.conf.port=8000 get=3
 dict_items([('get', 3), ('server', {'conf': {'port': 8000}})])
 {'conf': {'port': 8000}}
 ```
+
+<br/><br/>
 
 ## Tests
 
