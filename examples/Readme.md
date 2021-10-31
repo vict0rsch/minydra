@@ -75,7 +75,7 @@ This example showcases a complete "miny-workflow":
 1. parse arbitrary args
 2. load a configuration file
 3. update that configuration with the command-line args
-  * Optionally [prevent typos with `strict` mode](#strict-mode)
+    * Optionally [prevent typos with `strict` mode](#strict-mode)
 4. freeze the args so no later piece of code alters them
 5. pretty-prints them for user-friendliness
 6. saves resulting config to a file, illustrating dot-accessible nested (miny) dicts
