@@ -25,6 +25,8 @@ pip install minydra
  <a href="#strict-mode"><strong>Prevent typos</strong></a>
 </p>
 
+<br/><br/>
+
 ## Getting Started
 
 [`examples/parser.py`](examples/parser.py)
