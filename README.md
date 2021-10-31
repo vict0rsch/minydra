@@ -18,10 +18,10 @@ pip install minydra
 `minydra` is tested on Python `3.7`, `3.8` and `3.9`.
 
 <p align="center">
- <a href="#getting-started"><strong>Getting Started</strong></a>&nbsp;•&nbsp;
- <a href="#forcing-types"><strong>Forcing types</strong></a>&nbsp;•&nbsp;
- <a href="#minydict"><strong>MinyDict</strong></a>&nbsp;•&nbsp;
- <a href="#dumpingloading"><strong>Save config</strong></a>&nbsp;•&nbsp;
+ <a href="#getting-started"><strong>Getting Started</strong></a>&nbsp;&nbsp;•&nbsp;
+ <a href="#forcing-types"><strong>Forcing types</strong></a>&nbsp;&nbsp;•&nbsp;
+ <a href="#minydict"><strong>MinyDict</strong></a>&nbsp;&nbsp;•&nbsp;
+ <a href="#dumpingloading"><strong>Save config</strong></a>&nbsp;&nbsp;•&nbsp;
  <a href="#strict-mode"><strong>Prevent typos</strong></a>
 </p>
 
