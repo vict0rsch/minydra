@@ -1,0 +1,7 @@
+log:
+  outdir: /some/path
+  project: demo
+  logger:
+    log_level: DEBUG
+    logger_name: minydra
+verbose: false
