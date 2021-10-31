@@ -1,7 +1,11 @@
-log:
-  outdir: /some/path
-  project: demo
-  logger:
-    log_level: DEBUG
-    logger_name: minydra
-verbose: false
+# Example yaml conf. YAML requires an extra dependency, PyYAML:
+#
+# $ pip install minydra[yaml]
+#
+log: # logging configuration
+  outdir: /some/path # where to store execution results
+  project: demo # project name
+  logger: # python' logging.logger params
+    log_level: DEBUG # logger's log level
+    logger_name: minydra # logger's name
+verbose: false # code verbose level
