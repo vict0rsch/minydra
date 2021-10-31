@@ -11,7 +11,7 @@ Easily parse arbitrary arguments from the command line without dependencies:
 ![](https://img.shields.io/badge/version-0.1.3-informational)
 ![](https://img.shields.io/badge/python-3.7%2B%20-orange)
 
-```
+```bash
 pip install minydra
 ```
 
@@ -112,8 +112,8 @@ if __name__ == "__main__":
 * A single keyword starting with `-` will be interpreted as a negative flag.
 * If `parse_env` is `True`, environment variables are evaluated.
 
-```
-$ python decorator.py outdir=$HOME/project save -log learning_rate=1e-4 batch_size=64
+```text
+$ python examples/decorator.py outdir=$HOME/project save -log learning_rate=1e-4 batch_size=64
 ╭───────────────────────────────────────────╮
 │ batch_size    : 64                        │
 │ learning_rate : 0.0001                    │
@@ -125,7 +125,7 @@ $ python decorator.py outdir=$HOME/project save -log learning_rate=1e-4 batch_si
 
 * dotted keys will be resolved to nested dictionary keys:
 
-```
+```text
 $ python examples/decorator.py server.conf.port=8000
 ╭────────────────────╮
 │ server             │
@@ -136,7 +136,7 @@ $ python examples/decorator.py server.conf.port=8000
 
 * Using `ast.literal_eval(value)`, `minydra` will try and parse more complex values for arguments as lists or dicts. Those should be specified as strings:
 
-```
+```text
 $ python examples/decorator.py layers="[1, 2, 3]" norms="{'conv': 'batch', 'epsilon': 1e-3}"
 ╭──────────────────────────────────────────────────╮
 │ layers : [1, 2, 3]                               │
@@ -150,7 +150,7 @@ $ python examples/decorator.py layers="[1, 2, 3]" norms="{'conv': 'batch', 'epsi
 
 Adding `___<type>` to a key will force this type to the value. Notice how `01` is parsed to an integer `1` but `04` is parsed to a string (as specified) `"04"`, and `hello` is parsed to a `list`, not kept as a string
 
-```
+```text
 $ python examples/decorator.py n_jobs___str=04 job=01 chips___list=hello
 ╭────────────────────────────────────────╮
 │ chips  : ['h', 'e', 'l', 'l', 'o']     │
@@ -266,7 +266,7 @@ In [8]: assert (
 
 [`examples/dumps.py`](examples/dumps.py)
 
-```
+```text
 python examples/dumps.py path="./myargs.pkl" format=pickle cleanup
 
 ╭────────────────────────────╮
@@ -304,7 +304,7 @@ if __name__ == "__main__":
 
 No typo:
 
-```
+```text
 $ python examples/strict.py default=./examples/demo.json log.logger.log_level=INFO
 ╭──────────────────────────────╮
 │ log                          │
@@ -354,9 +354,9 @@ To produce a native Python `dict`, use `args.to_dict()`
 
 `MinyDict`'s methods (including the `dict` class's) are protected, they are read-only and you cannot therefore set _attributes_ with there names, like `args.get = 2`. If you do need to have a `get` argument, you can access it through _items_: `args["get"] = 2`.
 
-Try with [`examples/protected.py`](examples/parser.py):
+Try with [`examples/protected.py`](examples/protected.py):
 
-```
+```text
 python examples/protected.py server.conf.port=8000 get=3
 ╭────────────────────╮
 │ get    : 3         │
@@ -376,7 +376,7 @@ dict_items([('get', 3), ('server', {'conf': {'port': 8000}})])
 
 Run tests and pre-commit checks (`isort`, `black`, `flake8`) with
 
-```
+```bash
 $ pip install -r requirements-test.txt
 $ pre-commit run --all-files
 $ pytest -vv --cov=minydra tests/
