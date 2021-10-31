@@ -292,10 +292,6 @@ class MinyDict(dict):
                     if sk not in d:  # sub key does not exist in original obj
                         # create new sub dict
                         d[sk] = MinyDict()
-                    # if isinstance(d, dict) and not isinstance(d, MinyDict):
-                    #     # convert dict to MinyDict
-                    #     # and resolve its dotted keys
-                    #     d = MinyDict(d)._resolve_dots()
                     if isinstance(d[sk], MinyDict):
                         # next sub dict is a MinyDict:
                         # resolve its dots
