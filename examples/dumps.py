@@ -13,6 +13,8 @@ if __name__ == "__main__":
         dumped = Path(args.to_json(args.path or "./args.json"))
     elif format == "pickle":
         dumped = Path(args.to_pickle(args.path or "./args.pkl"))
+    elif format == "yaml":
+        dumped = Path(args.to_yaml(args.path or "./args.yaml"))
 
     print(f"Dumped args to {dumped}")
 

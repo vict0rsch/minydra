@@ -21,6 +21,7 @@ pip install minydra
  <a href="#getting-started"><strong>Getting Started</strong></a>&nbsp;•&nbsp;
  <a href="#forcing-types"><strong>Forcing types</strong></a>&nbsp;•&nbsp;
  <a href="#minydict"><strong>MinyDict</strong></a>&nbsp;•&nbsp;
+ <a href="#dumpingloading"><strong>Save config</strong></a>&nbsp;•&nbsp;
  <a href="#strict-mode"><strong>Prevent typos</strong></a>
 </p>
 
@@ -206,9 +207,9 @@ Out[8]: dict_items([('foo', 'bar'), ('yes', {'no': {'maybe': 'idontknow'}})])
 
 ### Dumping/Loading
 
-You can save and read `MinyDict` to/from disk in two formats: `json` and `pickle`.
+You can save and read `MinyDict` to/from disk in 3 formats: `json` and `pickle` without dependencies, `yaml` with the `PyYAML` dependency (`pip install minydra[yaml]`).
 
-Both `to_pickle` and `to_json` have 3 arguments:
+Methods `to_pickle`, `to_json` and `to_yaml` have 3 arguments:
 
 1. `file_path` as a `str` or `pathlib.Path` which is resolved:
     1. expand env variable (`$MYDIR` for instance)
@@ -218,9 +219,12 @@ Both `to_pickle` and `to_json` have 3 arguments:
 3. `allow_overwrites` which defaults to `True`. If `False` and `path` exists, a `FileExistsError` will be raised. Otherwise creates/overwrites the file at `file_path`
 4. `verbose` which defaults to `0`. If `>0` prints the path of the created object
 
-#### `json`
+Note:
 
-*Warning:* the `json` standard does not accept ints as keys in dictionaries so `{3: 2}` would be dumped -- and therefore loaded -- as `{"3": 2}`.
+* `to/from_yaml` will fail with a `ModuleNotFoundError` if `PyYAML` is not installed.
+* the `json` standard does not accept ints as keys in dictionaries so `{3: 2}` would be dumped -- and therefore loaded -- as `{"3": 2}`.
+
+
 
 ```python
 In [1]: from minydra.dict import MinyDict
@@ -228,26 +232,24 @@ In [1]: from minydra.dict import MinyDict
 In [2]: args = MinyDict({"foo": "bar", "yes.no.maybe": "idontknow"}).resolve(); args
 Out[2]: {'foo': 'bar', 'yes': {'no': {'maybe': 'idontknow'}}}
 
-In [3]: args.to_json("./opts.json")
+In [3]: json_file_path = args.to_json("./args.json")
 
-In [4]: args.to_json("./opts.json", verbose=1)
-Json dumped to: /Users/victor/Documents/Github/vict0rsch/minydra/opts.json
+In [4]: yaml_file_path = args.to_yaml("./args.yaml")
 
-In [5]: MinyDict.from_json("opts.json")
-Out[5]: {'foo': 'bar', 'yes': {'no': {'maybe': 'idontknow'}}}
-```
+In [5]: pkl_file_path = args.to_pickle("./args.pkl")
 
-#### `pickle`
+In [6]: _ = args.to_json("./args.json", verbose=1) # verbose argument prints the path
+Json dumped to: /Users/victor/Documents/Github/vict0rsch/minydra/args.json
 
-```python
-In [1]: from minydra.dict import MinyDict
+In [7]: MinyDict.from_json("args.json")
+Out[7]: {'foo': 'bar', 'yes': {'no': {'maybe': 'idontknow'}}}
 
-In [2]: args = MinyDict({"foo": "bar", "yes.no.maybe": "idontknow"}).resolve()
-
-In [3]: print(args)
-{'foo': 'bar', 'yes': {'no': {'maybe': 'idontknow'}}}
-
-In [4]: assert args == MinyDict.from_pickle(args.to_pickle("opts.pkl"))
+In [8]: assert (
+    MinyDict.from_yaml(yaml_file_path)
+    == MinyDict.from_json(json_file_path)
+    == MinyDict.from_pickle(pkl_file_path)
+    == args
+)
 ```
 
 [`examples/dumps.py`](examples/dumps.py)
@@ -266,7 +268,7 @@ Cleaning up
 
 ### Strict Mode
 
-To prevent typos from the command-line, `MinyDict.update` method has a strict mode: updating a `MinyDict` with another dictionary using `strict=True` will raise a `KeyError` if the key does not already exist:
+To prevent typos from the command-line, the `MinyDict.update` method has a strict mode: updating a `MinyDict` with another one using `strict=True` will raise a `KeyError` if the key does not already exist:
 
 ```python
 from minydra import MinyDict, resolved_args
