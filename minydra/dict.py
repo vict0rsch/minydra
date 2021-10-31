@@ -10,6 +10,11 @@ from typing import Any
 
 from minydra.utils import resolve_path, split_line
 
+try:
+    import yaml
+except ImportError:
+    yaml = None
+
 
 class MinyDict(dict):
     """
@@ -220,6 +225,64 @@ class MinyDict(dict):
         p = resolve_path(file_path)
         with p.open("r") as f:
             return MinyDict(json.load(f))
+
+    def to_yaml(self, file_path, return_path=True, allow_overwrite=True, verbose=0):
+        """
+        Dumps the MinyDict to a YAML file. Requires the PyYAML package:
+            $ pip install --upgrade minydra[yaml]
+        Or
+            $ pip install PyYAML
+
+        Args:
+            file_path (str or pathlib.Path): path (and name) of the file to save to
+            return_path (bool, optional): Whether to return the resulting file's path
+                (as str). Defaults to True.
+            allow_overwrite (bool, optional): Whether to allow overwrites, or raise a
+                FileError if the file already exits. Defaults to True.
+            verbose (int, optional): >0 => print the path. Defaults to 0.
+
+        Returns:
+            Optional[str]: Path to the dumped file
+        """
+        if yaml is None:
+            raise ModuleNotFoundError(
+                "Cannot import module 'yaml'.\n"
+                + "Install minydra with YAML: $ pip install minydra[yaml]\n"
+                + "Or install it directly: $ pip install PyYAML"
+            )
+        p = resolve_path(file_path)
+
+        if not allow_overwrite and p.exists():
+            raise FileExistsError(
+                f"Error dumping the MinyDict: file {p} already exists."
+            )
+
+        with p.open("w") as f:
+            yaml.safe_dump(self.to_dict(), f)
+
+        if verbose > 0:
+            print("YAML dumped to:", str(p))
+
+        if return_path:
+            return str(p)
+
+    @classmethod
+    def from_yaml(self, file_path):
+        """
+        Reads a MinyDict from a json file.
+
+        Args:
+            file_path (str): Path to the file to load from.
+        """
+        if yaml is None:
+            raise ModuleNotFoundError(
+                "Cannot import module 'yaml'.\n"
+                + "Install minydra with YAML: $ pip install minydra[yaml]\n"
+                + "Or install it directly: $ pip install PyYAML"
+            )
+        p = resolve_path(file_path)
+        with p.open("r") as f:
+            return MinyDict(yaml.safe_load(f))
 
     def to_dict(self):
         base = {}

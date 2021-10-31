@@ -119,6 +119,13 @@ def test_dump_json():
     p.unlink()
 
 
+def test_dump_yaml():
+    d = MinyDict({"a": 1, "b": 2, "u": "x", "r": {"t": 5}})
+    p = Path(d.to_yaml("d.yaml", verbose=1))
+    assert MinyDict.from_yaml(p) == d
+    p.unlink()
+
+
 def test_dump_no_overwrite():
     d = MinyDict({"a": 1, "b": 2, "u": "x", "r": {"t": 5}})
     p = Path(d.to_json("d.json"))
@@ -126,10 +133,16 @@ def test_dump_no_overwrite():
         d.to_json(p, allow_overwrite=False)
     p.unlink()
 
-    p = Path(d.to_pickle("d.pickle"))
+    p = Path(d.to_pickle("d.pkl"))
     with pytest.raises(FileExistsError):
         d.to_pickle(p, allow_overwrite=False)
     assert MinyDict.from_pickle(p) == d
+    p.unlink()
+
+    p = Path(d.to_yaml("d.yaml"))
+    with pytest.raises(FileExistsError):
+        d.to_yaml(p, allow_overwrite=False)
+    assert MinyDict.from_yaml(p) == d
     p.unlink()
 
 
