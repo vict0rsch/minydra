@@ -24,7 +24,8 @@ pip install minydra
  <a href="#forcing-types"><strong>Forcing types</strong></a>&nbsp;&nbsp;•&nbsp;
  <a href="#minydict"><strong>MinyDict</strong></a>&nbsp;&nbsp;•&nbsp;
  <a href="#dumpingloading"><strong>Save config</strong></a>&nbsp;&nbsp;•&nbsp;
- <a href="#strict-mode"><strong>Prevent typos</strong></a>
+ <a href="#strict-mode"><strong>Prevent typos</strong></a>&nbsp;&nbsp;•&nbsp;
+ <a href="/examples"><strong>Examples</strong></a>
 </p>
 
 <br/>
