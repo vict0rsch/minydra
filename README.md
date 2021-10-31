@@ -17,6 +17,8 @@ pip install minydra
 
 `minydra` is tested on Python `3.7`, `3.8` and `3.9`.
 
+<br/>
+
 <p align="center">
  <a href="#getting-started"><strong>Getting Started</strong></a>&nbsp;&nbsp;•&nbsp;
  <a href="#forcing-types"><strong>Forcing types</strong></a>&nbsp;&nbsp;•&nbsp;
@@ -25,7 +27,7 @@ pip install minydra
  <a href="#strict-mode"><strong>Prevent typos</strong></a>
 </p>
 
-<br/><br/>
+<br/>
 
 ## Getting Started
 
