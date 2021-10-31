@@ -269,7 +269,7 @@ class MinyDict(dict):
     @classmethod
     def from_yaml(self, file_path):
         """
-        Reads a MinyDict from a json file.
+        Reads a MinyDict from a yaml file.
 
         Args:
             file_path (str): Path to the file to load from.
