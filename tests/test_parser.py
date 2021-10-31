@@ -58,6 +58,20 @@ def test_dotted():
     assert run(["a.b.x=2"]) == capture(MinyDict({"a": {"b": {"x": 2}}}))
 
 
+def test_force_types():
+    assert (
+        run(
+            [
+                "a___str=01",
+                "b___bool=d",
+                "c___int=1.3",
+                "d___float=2",
+            ]
+        )
+        == capture(MinyDict({"a": "01", "b": True, "c": 1, "d": 2.0}))
+    )
+
+
 def test_fail_equal():
     assert "MinydraWrongArgumentException" in fail(["a="])
     assert "MinydraWrongArgumentException" in fail(["="])

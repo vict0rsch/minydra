@@ -7,7 +7,7 @@ Easily parse arbitrary arguments from the command line without dependencies:
 ![example code](assets/code.png)
 ![example code](assets/run.png)
 
-![](https://img.shields.io/badge/coverage-93%25-success)
+![](https://img.shields.io/badge/coverage-97%25-success)
 ![](https://img.shields.io/badge/version-0.1.3-informational)
 ![](https://img.shields.io/badge/python-3.7%2B%20-orange)
 
@@ -157,7 +157,7 @@ Known types are defined in `Parser.known_types` and the separator (`___`) in `Pa
 In [1]: from minydra import Parser
 
 In [2]: Parser.known_types
-Out[2]: {'bool', 'dict', 'float', 'int', 'list', 'set', 'str'}
+Out[2]: {'bool', 'float', 'int', 'str'}
 
 In [3]: Parser.type_separator
 Out[3]: '___'

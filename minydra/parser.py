@@ -14,10 +14,10 @@ class Parser:
         "bool",
         "int",
         "float",
-        "dict",
-        "list",
+        # "dict",
+        # "list",
         "str",
-        "set",
+        # "set",
     }
 
     type_separator = "___"
@@ -134,17 +134,11 @@ class Parser:
         if type_str == "bool":
             return bool(value)
         if type_str == "int":
-            return int(value)
+            return int(float(value))
         if type_str == "float":
             return float(value)
-        if type_str == "dict":
-            return dict(value)
-        if type_str == "list":
-            return list(value)
         if type_str == "str":
             return str(value)
-        if type_str == "set":
-            return set(value)
 
     @staticmethod
     def _parse_arg(arg, type_str=None):
