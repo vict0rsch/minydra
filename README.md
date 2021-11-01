@@ -228,7 +228,7 @@ Methods `to_pickle`, `to_json` and `to_yaml` have 3 arguments:
     1. expand env variable (`$MYDIR` for instance)
     2. expand user (`~`)
     3. make absolute
-2. `return_path` which defaults to `True`. If `True` `to_json` and `to_pickle` return the path of the created object
+2. `return_path` which defaults to `True`. If those methods return the path of the created file
 3. `allow_overwrites` which defaults to `True`. If `False` and `path` exists, a `FileExistsError` will be raised. Otherwise creates/overwrites the file at `file_path`
 4. `verbose` which defaults to `0`. If `>0` prints the path of the created object
 
