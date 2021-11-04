@@ -1,0 +1,11 @@
+{
+    "log": {
+        "outdir": "/some/other/path",
+        "logger": {
+            "log_level": "INFO",
+            "logger_name": "minydra"
+        }
+    },
+    "verbose": false,
+    "new_key": 3
+}

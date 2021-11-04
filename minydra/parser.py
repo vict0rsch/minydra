@@ -1,11 +1,13 @@
 import ast
 import os
+import pathlib
 import re
 import sys
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Union
 
 from minydra.dict import MinyDict
 from minydra.exceptions import MinydraWrongArgumentException
+from minydra.utils import resolve_path
 
 
 class Parser:
@@ -32,6 +34,7 @@ class Parser:
         warn_overwrites=True,
         parse_env=True,
         warn_env=True,
+        defaults=None,
     ) -> None:
         """
         Create a Minydra Parser to parse arbitrary commandline argument as:
@@ -51,6 +54,9 @@ class Parser:
                 as key or value in the command line. Defaults to True.
             warn_env (bool, optional): Wether to print a warning in case an environment
                 variable is parsed but no value is found. Defaults to True.
+            defaults (Union[str, dict, MinyDict], optional): The set of allowed keys as
+                a (Miny)dict or a path to a file that `minydra.MinyDict` will be able to
+                load (as `json`, `pickle` or `yaml`)
         """
         super().__init__()
 
@@ -64,6 +70,48 @@ class Parser:
         self._print("sys.argv:", self._argv)
 
         self._parse_args()
+        if defaults is not None or self.args["@defaults"]:
+            default = self.load_defaults(self.args["@defaults"] or defaults)
+            args = self.args.deepcopy().resolve()
+            args_defaults = args["@defaults"]
+            if args["@defaults"]:
+                del args["@defaults"]
+            self.args = default.update(args, strict=True)
+            if args_defaults:
+                self.args["@defaults"] = args_defaults
+
+    @staticmethod
+    def load_defaults(default: Union[str, dict, MinyDict]):
+        """
+        Set the default keys.
+
+        Args:
+            allow (Union[str, dict, MinyDict]): The set of allowed keys as a
+                (Miny)dict or a path to a file that `minydra.MinyDict` will be able to
+                load (as `json`, `pickle` or `yaml`)
+        """
+        if isinstance(default, (str, pathlib.Path)):
+            default = resolve_path(default)
+            assert default.exists()
+            assert default.is_file()
+            if default.suffix not in {".json", ".yaml", ".yml", ".pickle", ".pkl"}:
+                raise ValueError(f"{str(default)} is not a valid file extension.")
+            if default.suffix in {".yaml", ".yml"}:
+                default = MinyDict.from_yaml(default)
+            elif default.suffix in {".pickle", ".pkl"}:
+                default = MinyDict.from_pickle(default)
+            else:
+                default = MinyDict.from_json(default)
+        elif isinstance(default, dict):
+            default = MinyDict(default).resolve()
+        elif isinstance(default, list):
+            defaults = [Parser.load_defaults(d) for d in default]
+            default = MinyDict()
+            for d in defaults:
+                default.update(d, strict=False)
+
+        assert isinstance(default, MinyDict)
+        return default
 
     def _print(self, *args, **kwargs):
         if self.verbose > 0:
@@ -177,7 +225,6 @@ class Parser:
             return float(value)
         if type_str == "str":
             return str(value)
-        return value
 
     @staticmethod
     def _infer_arg_type(arg: Any, type_str: Optional[str] = None) -> Any:

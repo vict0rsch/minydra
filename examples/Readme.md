@@ -297,6 +297,72 @@ In [6]: d.update({"b": {"e": 2}}).pretty_print() # default is strict=False, allo
 Out[6]: {'a': 10, 'b': {'c': 0, 'e': 2}}
 ```
 
+## Using default configurations
+
+Code: [**`defaults.py`**](defaults.py)
+
+```python
+from minydra import resolved_args
+
+if __name__ == "__main__":
+
+    args = resolved_args(defaults="demo.yaml")
+    args.pretty_print()
+```
+
+```text
+$ python examples/defaults.py
+╭──────────────────────────────╮
+│ log                          │
+│ │logger                      │
+│ │ │log_level   : DEBUG       │
+│ │ │logger_name : minydra     │
+│ │outdir  : /some/path        │
+│ │project : demo              │
+│ verbose : False              │
+╰──────────────────────────────╯
+
+$ python examples/defaults.py @defaults=examples/demo2.json
+╭─────────────────────────────────────╮
+│ @defaults : examples/demo2.json     │
+│ log                                 │
+│ │logger                             │
+│ │ │log_level   : INFO               │
+│ │ │logger_name : minydra            │
+│ │outdir : /some/other/path          │
+│ new_key   : 3                       │
+│ verbose   : False                   │
+╰─────────────────────────────────────╯
+
+$ python examples/defaults.py @defaults="['examples/demo.json', 'examples/demo2.json']"
+╭───────────────────────────────────────────────────────────────╮
+│ @defaults : ['examples/demo.json', 'examples/demo2.json']     │
+│ log                                                           │
+│ │logger                                                       │
+│ │ │log_level   : INFO                                         │
+│ │ │logger_name : minydra                                      │
+│ │outdir  : /some/other/path                                   │
+│ │project : demo                                               │
+│ new_key   : 3                                                 │
+│ verbose   : False                                             │
+╰───────────────────────────────────────────────────────────────╯
+```
+
+```python
+In [1]: from minydra import Parser
+
+In [2]: Parser(defaults=["./examples/demo.json", "./examples/demo2.json"]).args.pretty_print();
+╭─────────────────────────────────╮
+│ log                             │
+│ │logger                         │
+│ │ │log_level   : INFO           │
+│ │ │logger_name : minydra        │
+│ │outdir  : /some/other/path     │
+│ │project : demo                 │
+│ new_key : 3                     │
+│ verbose : False                 │
+╰─────────────────────────────────╯
+```
 ## Protected attributes
 
 `MinyDict`'s methods (including the `dict` class's) are protected, they are read-only and you cannot therefore set _attributes_ with there names, like `args.get = 2`. If you do need to have a `get` argument, you can access it through _items_: `args["get"] = 2`.

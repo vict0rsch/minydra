@@ -7,8 +7,8 @@ Easily parse arbitrary arguments from the command line without dependencies:
 ![example code](assets/code.png)
 ![example code](assets/run.png)
 
-![](https://img.shields.io/badge/coverage-97%25-success)
-![](https://img.shields.io/badge/version-0.1.4-informational)
+![](https://img.shields.io/badge/coverage-99%25-success)
+![](https://img.shields.io/badge/version-0.1.5-informational)
 ![](https://img.shields.io/badge/python-3.7%2B%20-orange)
 
 ```bash
@@ -25,6 +25,7 @@ pip install minydra
  <a href="#minydict"><strong>MinyDict</strong></a>&nbsp;&nbsp;•&nbsp;
  <a href="#dumpingloading"><strong>Save config</strong></a>&nbsp;&nbsp;•&nbsp;
  <a href="#strict-mode"><strong>Prevent typos</strong></a>&nbsp;&nbsp;•&nbsp;
+ <a href="#using-default-configurations"><strong>Use default configs</strong></a>&nbsp;&nbsp;•&nbsp;
  <a href="/examples"><strong>Examples</strong></a>
 </p>
 
@@ -332,6 +333,68 @@ Traceback (most recent call last):
   File "/Users/victor/Documents/Github/vict0rsch/minydra/minydra/dict.py", line 100, in update
     raise KeyError(
 KeyError: 'Cannot create a non-existing key in strict mode ({"log_leveel":INFO}).'
+```
+
+<br/>
+
+### Using default configurations
+
+The `minydra.Parser` class takes a `defaults=` keyword argument. This can be:
+
+* a `str` or a `pathlib.Path` to a `json` `yaml` or `pickle` file that `minydra.MinyDict` can load (`from_X`)
+* a `dict` or a `minydra.MinyDict`
+
+When `defaults` is provided, the resulting `minydra.MinyDict` serves as a reference for the arguments parsed from the command-line:
+
+* arguments from the command-line have a higher priority but **must** be present in the `defaults` (`defaults.update(args, strict=True)` is used, see [strict mode](#strict-mode))
+* arguments not present in the command-line with fallback to values in `defaults`
+
+`defaults` can actually be a `list` and the update order is the same as the list's. For instance:
+
+```python
+In [1]: from minydra import Parser
+
+In [2]: Parser(defaults=["./examples/demo.json", "./examples/demo2.json"]).args.pretty_print();
+╭─────────────────────────────────╮
+│ log                             │
+│ │logger                         │
+│ │ │log_level   : INFO           │
+│ │ │logger_name : minydra        │
+│ │outdir  : /some/other/path     │
+│ │project : demo                 │
+│ new_key : 3                     │
+│ verbose : False                 │
+╰─────────────────────────────────╯
+```
+
+If you need to set defaults from the command-line, there's a special `@defaults` keyword you can use:
+
+
+```text
+$ python examples/decorator.py @defaults=./examples/demo.json
+╭──────────────────────────────────────╮
+│ @defaults : ./examples/demo.json     │
+│ log                                  │
+│ │logger                              │
+│ │ │log_level   : DEBUG               │
+│ │ │logger_name : minydra             │
+│ │outdir  : /some/path                │
+│ │project : demo                      │
+│ verbose   : False                    │
+╰──────────────────────────────────────╯
+
+$ python examples/decorator.py @defaults="['./examples/demo.json', './examples/demo2.json']"
+╭───────────────────────────────────────────────────────────────────╮
+│ @defaults : ['./examples/demo.json', './examples/demo2.json']     │
+│ log                                                               │
+│ │logger                                                           │
+│ │ │log_level   : INFO                                             │
+│ │ │logger_name : minydra                                          │
+│ │outdir  : /some/other/path                                       │
+│ │project : demo                                                   │
+│ new_key   : 3                                                     │
+│ verbose   : False                                                 │
+╰───────────────────────────────────────────────────────────────────╯
 ```
 
 <br/>
