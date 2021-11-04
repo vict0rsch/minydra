@@ -91,42 +91,42 @@ def test_set_env(monkeypatch, capfd):
     assert "Detected variable $MINY_VAR_DOES_NOT_EXIST" in out
 
 
-def test_sanitize_args_int():
-    assert Parser.sanitize_args({"a": "3"}) == {"a": 3}
+def test_parse_arg_types_int():
+    assert Parser.parse_arg_types({"a": "3"}) == {"a": 3}
 
 
-def test_sanitize_args_float():
-    assert Parser.sanitize_args({"a": "3.1"}) == {"a": 3.1}
-    assert Parser.sanitize_args({"a": "1e-4"}) == {"a": 0.0001}
+def test_parse_arg_types_float():
+    assert Parser.parse_arg_types({"a": "3.1"}) == {"a": 3.1}
+    assert Parser.parse_arg_types({"a": "1e-4"}) == {"a": 0.0001}
 
 
-def test_sanitize_args_bool():
-    assert Parser.sanitize_args({"a": "true"}) == {"a": True}
-    assert Parser.sanitize_args({"a": "True"}) == {"a": True}
-    assert Parser.sanitize_args({"a": "false"}) == {"a": False}
-    assert Parser.sanitize_args({"a": "False"}) == {"a": False}
+def test_parse_arg_types_bool():
+    assert Parser.parse_arg_types({"a": "true"}) == {"a": True}
+    assert Parser.parse_arg_types({"a": "True"}) == {"a": True}
+    assert Parser.parse_arg_types({"a": "false"}) == {"a": False}
+    assert Parser.parse_arg_types({"a": "False"}) == {"a": False}
 
 
-def test_sanitize_args_list():
-    assert Parser.sanitize_args({"a": "[]"}) == {"a": []}
-    assert Parser.sanitize_args({"a": "[1, 2]"}) == {"a": [1, 2]}
-    assert Parser.sanitize_args({"a": "[1, 2, 'b']"}) == {"a": [1, 2, "b"]}
-    assert Parser.sanitize_args({"a": "[1, 2, 'b']", "c": 4}) == {
+def test_parse_arg_types_list():
+    assert Parser.parse_arg_types({"a": "[]"}) == {"a": []}
+    assert Parser.parse_arg_types({"a": "[1, 2]"}) == {"a": [1, 2]}
+    assert Parser.parse_arg_types({"a": "[1, 2, 'b']"}) == {"a": [1, 2, "b"]}
+    assert Parser.parse_arg_types({"a": "[1, 2, 'b']", "c": 4}) == {
         "a": [1, 2, "b"],
         "c": 4,
     }
-    assert Parser.sanitize_args({"a": "[1, [2, 3]]"}) == {"a": [1, [2, 3]]}
-    assert Parser.sanitize_args({"a": "[1, [2, 1e-3]]"}) == {"a": [1, [2, 0.001]]}
-    assert Parser.sanitize_args({"a": "['false']"}) == {"a": [False]}
-    assert Parser.sanitize_args({"a": "[False]"}) == {"a": [False]}
+    assert Parser.parse_arg_types({"a": "[1, [2, 3]]"}) == {"a": [1, [2, 3]]}
+    assert Parser.parse_arg_types({"a": "[1, [2, 1e-3]]"}) == {"a": [1, [2, 0.001]]}
+    assert Parser.parse_arg_types({"a": "['false']"}) == {"a": [False]}
+    assert Parser.parse_arg_types({"a": "[False]"}) == {"a": [False]}
 
 
-def test_sanitize_args_dict(monkeypatch):
-    assert Parser.sanitize_args({"a": "{}"}) == {"a": {}}
-    assert Parser.sanitize_args({"a": "{1: 2}"}) == {"a": {1: 2}}
-    assert Parser.sanitize_args({"a": "{1: 2e-3}"}) == {"a": {1: 0.002}}
-    assert Parser.sanitize_args({"a": "{1: False}"}) == {"a": {1: False}}
-    assert Parser.sanitize_args({"a": "{1: [1, 3]}"}) == {"a": {1: [1, 3]}}
+def test_parse_arg_types_dict(monkeypatch):
+    assert Parser.parse_arg_types({"a": "{}"}) == {"a": {}}
+    assert Parser.parse_arg_types({"a": "{1: 2}"}) == {"a": {1: 2}}
+    assert Parser.parse_arg_types({"a": "{1: 2e-3}"}) == {"a": {1: 0.002}}
+    assert Parser.parse_arg_types({"a": "{1: False}"}) == {"a": {1: False}}
+    assert Parser.parse_arg_types({"a": "{1: [1, 3]}"}) == {"a": {1: [1, 3]}}
 
     monkeypatch.setenv("USER", "TestingUser")
-    assert Parser.sanitize_args({"a": "{1: '$USER'}"}) == {"a": {1: "TestingUser"}}
+    assert Parser.parse_arg_types({"a": "{1: '$USER'}"}) == {"a": {1: "TestingUser"}}
