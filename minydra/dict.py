@@ -369,6 +369,7 @@ class MinyDict(dict):
         Recursively pretty print MinyDict's items.
         Returns itself to chain method calls
 
+        ```
         $ python parser.py foo=bar yes.no.maybe=idontknow
 
         ╭───────────────────────────────╮
@@ -377,6 +378,7 @@ class MinyDict(dict):
         │     no                        │
         │         maybe : idontknow     │
         ╰───────────────────────────────╯
+        ```
 
         Args:
             indents (int, optional): Number of space to indent nested dicts.

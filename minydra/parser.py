@@ -2,22 +2,25 @@ import ast
 import os
 import re
 import sys
+from typing import Any, List, Optional
 
-from minydra.console import MinyConsole
 from minydra.dict import MinyDict
 from minydra.exceptions import MinydraWrongArgumentException
 
 
 class Parser:
+    """
+    Minydra Parser: reads `sys.argv[1:]` into a `minydra.MinyDict`.
+
+    Immediately runs `self._parse_args()`: storing a dictionnary of arguments
+    in `self.dict_args` and a `minydra.MinyDict` of arguments in `self.args`.
+    """
 
     known_types = {
         "bool",
         "int",
         "float",
-        # "dict",
-        # "list",
         "str",
-        # "set",
     }
 
     type_separator = "___"
@@ -31,7 +34,11 @@ class Parser:
         warn_env=True,
     ) -> None:
         """
-        Create a Minydra Parser to parse arbitrary commandline argument as key=value
+        Create a Minydra Parser to parse arbitrary commandline argument as:
+
+            * `key=value`
+            * `positiveArg` (set to `True`)
+            * `-negativeArg` (set to `False`)
 
         Args:
             verbose (int, optional): Wether to print received system arguments.
@@ -52,7 +59,6 @@ class Parser:
         self.warn_overwrites = warn_overwrites
         self.parse_env = parse_env
         self.warn_env = warn_env
-        self.console = MinyConsole()
 
         self._argv = sys.argv[1:]
         self._print("sys.argv:", self._argv)
@@ -70,7 +76,6 @@ class Parser:
             self.warn_overwrites,
             self.parse_env,
             self.warn_env,
-            self.console,
         )
         self.args = MinyDict(**self.dict_args)
 
@@ -81,20 +86,42 @@ class Parser:
         warn_overwrites=True,
         parse_env=True,
         warn_env=True,
-        console=None,
     ):
+        """
+        Parses raw `sys.arv[1:]` arguments into a Python `dict`, running sequentially:
+
+        * `Parser.check_args`
+        * `Parser.map_args`
+        * `Parser.parse_arg_types`
+
+
+        Args:
+            args (list[str]): Raw `sys.arv[1:]` arguments.
+            allow_overwrites (bool, optional): Wether to allow for repeating arguments
+                in the command line. Defaults to True.
+            warn_overwrites (bool, optional): Wether to print a waring in case of a
+                repeated argument (if that is allowed). Defaults to True.
+            parse_env (bool, optional): Wether to parse environment variables specified
+                as key or value in the command line. Defaults to True.
+            warn_env (bool, optional): Wether to print a warning in case an environment
+                variable is parsed but no value is found. Defaults to True.
+
+        Returns:
+            dict: Processed arguments as `{key:parsedValue}`.
+        """
         Parser.check_args(args)
-        args = Parser.map_args(args, allow_overwrites, warn_overwrites, console)
-        args = Parser.sanitize_args(args, parse_env, warn_env, console)
+        args = Parser.map_args(args, allow_overwrites, warn_overwrites)
+        args = Parser.parse_arg_types(args, parse_env, warn_env)
         return args
 
     @staticmethod
-    def check_args(args):
+    def check_args(args: List[str]) -> None:
         """
-        Checks the syntax of received arguments
+        Checks the syntax of received arguments. Only `key=value`, `positiveArg`,
+        `-negativeArg` patters are allowed in `sys.argv[1:]`.
 
         Args:
-            args (list): List of arguments from sys.argv[1:]
+            args (list): List of arguments from `sys.argv[1:]`
 
         Raises:
             MinydraWrongArgumentException: ` =` in arguments
@@ -129,8 +156,19 @@ class Parser:
         return
 
     @staticmethod
-    def _force_type(value, type_str):
+    def _force_type(value: str, type_str: str) -> Any:
+        """
+        Applies a type constructor to a value, e.g. `float(value)`,
+        if `type_str` is in `Parser.known_types`.
 
+        Args:
+            value (str): The value to transform.
+            type_str (str): The string for the type constructor,
+                as per `Parser.known_args`.
+
+        Returns:
+            Any: typed value if the `type_str` is known, `value` otherwise.
+        """
         if type_str == "bool":
             return bool(value)
         if type_str == "int":
@@ -139,9 +177,10 @@ class Parser:
             return float(value)
         if type_str == "str":
             return str(value)
+        return value
 
     @staticmethod
-    def _parse_arg(arg, type_str=None):
+    def _infer_arg_type(arg: Any, type_str: Optional[str] = None) -> Any:
         """
         Parses an argument: returns it if it is not a string, else:
             * parses to int
@@ -182,18 +221,20 @@ class Parser:
             return False
 
         if arg.startswith("[") and arg.endswith("]"):
-            return [Parser._parse_arg(v) for v in ast.literal_eval(arg)]
+            return [Parser._infer_arg_type(v) for v in ast.literal_eval(arg)]
 
         if arg.startswith("{") and arg.endswith("}"):
             return {
-                Parser._parse_arg(k): Parser._parse_arg(v)
+                Parser._infer_arg_type(k): Parser._infer_arg_type(v)
                 for k, v in ast.literal_eval(arg).items()
             }
 
         return arg
 
     @staticmethod
-    def sanitize_args(args, parse_env=True, warn_env=True, console: MinyConsole = None):
+    def parse_arg_types(
+        args: dict, parse_env: bool = True, warn_env: bool = True
+    ) -> dict:
         """
         Automatically infer individual arguments' types
 
@@ -203,28 +244,26 @@ class Parser:
                 Defaults to True.
             warn_env (bool, optional): Whether to print a warning in case an env
                 variable cannot be found. Defaults to True.
-            console (MinyConsole, optional): Console to print the warning.
-                Defaults to None.
 
         Returns:
-            dict: Sanitized dict
+            dict: Args dict with inferred type values
         """
-        sane = {}
+        typed = {}
         for k, v in args.items():
 
             if parse_env:
-                v = Parser.set_env(v, warn_env, console)
+                v = Parser.set_env(v, warn_env)
             type_str = None
             if Parser.type_separator in k:
                 candidate_k, candidate_type_str = k.split(Parser.type_separator)
                 if candidate_type_str in Parser.known_types:
                     type_str = candidate_type_str
                     k = candidate_k
-            sane[k] = Parser._parse_arg(v, type_str)
-        return sane
+            typed[k] = Parser._infer_arg_type(v, type_str)
+        return typed
 
     @staticmethod
-    def set_env(value: str, warn_env: bool = True, console: MinyConsole = None) -> str:
+    def set_env(value: str, warn_env: bool = True) -> str:
         """
         Replaces environment variables with their values
 
@@ -232,8 +271,6 @@ class Parser:
             value (str): Environment variable identifier $VAR
             warn_env (bool, optional): Whether to print a warning if an env variable
                 cannot be found. Defaults to True.
-            console (MinyConsole, optional): Console to print the warning.
-                Defaults to None.
 
         Returns:
             str: Argument with resolved env variables
@@ -248,7 +285,6 @@ class Parser:
                     f"Detected variable ${arg_var}"
                     + ", but could not find it in the environment. "
                     + f"Keeping raw value ${arg_var}.",
-                    console,
                 )
             else:
                 value = value.replace("$" + arg_var, env_var)
@@ -256,28 +292,24 @@ class Parser:
         return value
 
     @staticmethod
-    def warn(text: str, console: MinyConsole = None):
+    def warn(text: str):
         """
-        Print a warning using a Console or standard print()
+        Print a warning as `"[Minydra Warning] " + text`
 
         Args:
             text (str): Warning text
-            console (MinyConsole, optional): Console to print the warning.
-                Defaults to None.
         """
         text = "[Minydra Warning] " + text
-        if console is not None:
-            print(console.warn(text))
-        else:
-            print(text)
+        print(text)
 
     @staticmethod
-    def map_args(args, allow_overwrites, warn_overwrites, console: MinyConsole = None):
+    def map_args(args, allow_overwrites, warn_overwrites):
         """
         Create a dictionnary from the list of arguments:
-        key=value -> {key: value}
-        key       -> {key: True}
-        -key      -> {key: False}
+
+            * `key=value` -> `{key: value}`
+            * `key`       -> `{key: True}`
+            * `-key`      -> `{key: False}`
 
         Args:
             args (list): List of arguments to map into a dictionnary
@@ -285,8 +317,6 @@ class Parser:
             the last value is kept
             warn_overwrites (bool): Whether to print a warning in case an argument
                 is repeated (and it is allowed)
-            console (MinyConsole, optional): Console to print warnings.
-                Defaults to None.
 
         Raises:
             MinydraWrongArgumentException: An argument is repeated and allow_overwrites
@@ -317,7 +347,7 @@ class Parser:
                     )
                 if warn_overwrites:
                     text = f"Repeated argument {key}," + " overwriting previous value."
-                    Parser.warn(text, console)
+                    Parser.warn(text)
 
             args_dict[key] = value
 
