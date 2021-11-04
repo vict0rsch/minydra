@@ -25,6 +25,7 @@ pip install minydra
  <a href="#minydict"><strong>MinyDict</strong></a>&nbsp;&nbsp;•&nbsp;
  <a href="#dumpingloading"><strong>Save config</strong></a>&nbsp;&nbsp;•&nbsp;
  <a href="#strict-mode"><strong>Prevent typos</strong></a>&nbsp;&nbsp;•&nbsp;
+ <a href="#using-default-configurations"><strong>Use default configs</strong></a>&nbsp;&nbsp;•&nbsp;
  <a href="/examples"><strong>Examples</strong></a>
 </p>
 
