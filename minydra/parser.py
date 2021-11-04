@@ -1,5 +1,6 @@
 import ast
 import os
+import pathlib
 import re
 import sys
 from typing import Any, List, Optional, Union
@@ -69,15 +70,15 @@ class Parser:
         self._print("sys.argv:", self._argv)
 
         self._parse_args()
-        if defaults is not None or self.args.minydefaults:
-            default = self.load_defaults(self.args.minydefaults or defaults)
+        if defaults is not None or self.args["@defaults"]:
+            default = self.load_defaults(self.args["@defaults"] or defaults)
             args = self.args.deepcopy().resolve()
-            minydefaults = args.minydefaults
-            if args.minydefaults:
-                del args.minydefaults
+            args_defaults = args["@defaults"]
+            if args["@defaults"]:
+                del args["@defaults"]
             self.args = default.update(args, strict=True)
-            if minydefaults:
-                self.args.minydefaults = minydefaults
+            if args_defaults:
+                self.args["@defaults"] = args_defaults
 
     @staticmethod
     def load_defaults(default: Union[str, dict, MinyDict]):
@@ -89,7 +90,7 @@ class Parser:
                 (Miny)dict or a path to a file that `minydra.MinyDict` will be able to
                 load (as `json`, `pickle` or `yaml`)
         """
-        if isinstance(default, str):
+        if isinstance(default, (str, pathlib.Path)):
             default = resolve_path(default)
             assert default.exists()
             assert default.is_file()
