@@ -7,8 +7,8 @@ Easily parse arbitrary arguments from the command line without dependencies:
 ![example code](assets/code.png)
 ![example code](assets/run.png)
 
-![](https://img.shields.io/badge/coverage-97%25-success)
-![](https://img.shields.io/badge/version-0.1.4-informational)
+![](https://img.shields.io/badge/coverage-99%25-success)
+![](https://img.shields.io/badge/version-0.1.5-informational)
 ![](https://img.shields.io/badge/python-3.7%2B%20-orange)
 
 ```bash
