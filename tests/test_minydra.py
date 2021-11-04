@@ -46,41 +46,39 @@ def test_defaults():
         args = minydra.resolved_args(defaults=p)
         assert args.d.e.f == 2
 
-    with patch.object(sys, "argv", ["", f"minydefaults={str(d1)}"]):
+    with patch.object(sys, "argv", ["", f"@defaults={str(d1)}"]):
         args = minydra.resolved_args()
-        del args.minydefaults
+        del args["@defaults"]
         assert args.to_dict() == json.loads(d1.read_text())
 
-    with patch.object(sys, "argv", ["", f"minydefaults={str(y1)}"]):
+    with patch.object(sys, "argv", ["", f"@defaults={str(y1)}"]):
         args = minydra.resolved_args()
-        del args.minydefaults
+        del args["@defaults"]
         assert args.to_dict() == MinyDict.from_yaml(y1)
 
-    with patch.object(sys, "argv", ["", f"minydefaults={str(pkl)}"]):
+    with patch.object(sys, "argv", ["", f"@defaults={str(pkl)}"]):
         args = minydra.resolved_args()
-        del args.minydefaults
+        del args["@defaults"]
         assert args.to_dict() == MinyDict.from_pickle(pkl)
         Path(pkl).unlink()
 
     with pytest.raises(ValueError):
         with patch.object(
-            sys, "argv", ["", f"minydefaults={str(d1).replace('.json', '.py')}"]
+            sys, "argv", ["", f"@defaults={str(d1).replace('.json', '.py')}"]
         ):
             args = minydra.resolved_args()
 
     with pytest.raises(KeyError):
-        with patch.object(sys, "argv", ["", f"minydefaults={str(d1)}", "new_key=3"]):
+        with patch.object(sys, "argv", ["", f"@defaults={str(d1)}", "new_key=3"]):
             args = minydra.resolved_args()
-            del args.minydefaults
+            del args["@defaults"]
             assert args.to_dict() == json.loads(d1.read_text())
 
     double_defaults = f"['{str(d1)}', '{str(d2)}']"
-    with patch.object(
-        sys, "argv", ["", f"minydefaults={double_defaults}", "new_key=3"]
-    ):
+    with patch.object(sys, "argv", ["", f"@defaults={double_defaults}", "new_key=3"]):
         args = minydra.resolved_args()
         d1d = MinyDict.from_json(d1)
         d2d = MinyDict.from_json(d2)
         d1d = d1d.update(d2d)
-        del args.minydefaults
+        del args["@defaults"]
         assert args == d1d
