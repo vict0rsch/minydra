@@ -1,7 +1,6 @@
 {
     "log": {
         "outdir": "/some/other/path",
-        "project": "demo",
         "logger": {
             "log_level": "INFO",
             "logger_name": "minydra"
