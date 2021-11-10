@@ -35,6 +35,8 @@ class Parser:
         parse_env=True,
         warn_env=True,
         defaults=None,
+        strict=True,
+        keep_special_kwargs=True,
     ) -> None:
         """
         Create a Minydra Parser to parse arbitrary commandline argument as:
@@ -54,9 +56,15 @@ class Parser:
                 as key or value in the command line. Defaults to True.
             warn_env (bool, optional): Wether to print a warning in case an environment
                 variable is parsed but no value is found. Defaults to True.
-            defaults (Union[str, dict, MinyDict], optional): The set of allowed keys as
+            defaults (Union[str, dict, MinyDict], optional): Default arguments
                 a (Miny)dict or a path to a file that `minydra.MinyDict` will be able to
-                load (as `json`, `pickle` or `yaml`)
+                load (as `json`, `pickle` or `yaml`). Can also be provided with the
+                special `@defaults=<value>` command-line argument. Defaults to None.
+            strict (bool, optional): Wether to raise an error if an unknown argument is
+                passed and `defaults` was provided. Can also be provided with the
+                special `@strict=<true|false>` command-line argument. Defaults to True.
+            keep_special_kwargs (bool, optional): Wether to keep special keywords like
+                `@defaults` and `@strict` in the parsed arguments. Defaults to True.
         """
         super().__init__()
 
@@ -65,6 +73,8 @@ class Parser:
         self.warn_overwrites = warn_overwrites
         self.parse_env = parse_env
         self.warn_env = warn_env
+        self.strict = strict
+        self.keep_special_kwargs = keep_special_kwargs
 
         self._argv = sys.argv[1:]
         self._print("sys.argv:", self._argv)
@@ -73,12 +83,23 @@ class Parser:
         if defaults is not None or self.args["@defaults"]:
             default = self.load_defaults(self.args["@defaults"] or defaults)
             args = self.args.deepcopy().resolve()
+
             args_defaults = args["@defaults"]
-            if args["@defaults"]:
+            args_strict = args["@strict"]
+
+            if args_defaults is not None:
                 del args["@defaults"]
-            self.args = default.update(args, strict=True)
-            if args_defaults:
-                self.args["@defaults"] = args_defaults
+            if args_strict is not None:
+                self.strict = args["@strict"]
+                del args["@strict"]
+
+            self.args = default.update(args, strict=self.strict)
+
+            if self.keep_special_kwargs:
+                if args_defaults is not None:
+                    self.args["@defaults"] = args_defaults
+                if args_strict is not None:
+                    self.args["@strict"] = args_strict
 
     @staticmethod
     def load_defaults(default: Union[str, dict, MinyDict]):

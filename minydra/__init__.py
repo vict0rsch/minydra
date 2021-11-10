@@ -11,6 +11,8 @@ def parse_args(
     parse_env=True,
     warn_env=True,
     defaults=None,
+    strict=True,
+    keep_special_kwargs=True,
 ):
     def decorator(function):
         def wrapper(*args, **kwargs):
@@ -21,6 +23,8 @@ def parse_args(
                 parse_env=parse_env,
                 warn_env=warn_env,
                 defaults=defaults,
+                strict=strict,
+                keep_special_kwargs=keep_special_kwargs,
             )
             result = function(parser.args)
             return result
@@ -37,6 +41,8 @@ def resolved_args(
     parse_env=True,
     warn_env=True,
     defaults=None,
+    strict=True,
+    keep_special_kwargs=True,
 ):
     return Parser(
         verbose=verbose,
@@ -45,4 +51,6 @@ def resolved_args(
         parse_env=parse_env,
         warn_env=warn_env,
         defaults=defaults,
+        strict=strict,
+        keep_special_kwargs=keep_special_kwargs,
     ).args.resolve()
