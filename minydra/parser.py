@@ -104,6 +104,10 @@ class Parser:
                 if args_strict is not None:
                     self.args["@strict"] = args_strict
 
+        if not self.conf.keep_special_kwargs:
+            for k in self.conf:
+                self.args.pop(f"@{k}", None)
+
     @staticmethod
     def load_defaults(default: Union[str, dict, MinyDict]):
         """
@@ -142,8 +146,8 @@ class Parser:
             print(*args, **kwargs)
 
     def _parse_args(self):
-        self._parse_conf()
         Parser.check_args(self._argv)
+        self._parse_conf()
         args = Parser.map_argv(
             self._argv, self.conf.allow_overwrites, self.conf.warn_overwrites
         )
@@ -152,7 +156,17 @@ class Parser:
         self.args = MinyDict(**args)
 
     def _parse_conf(self):
-        pass
+        special_keys = [f"@{k}" for k in self.conf.keys()]
+        command_line_special_keys = [
+            arg for arg in self._argv if arg.split("=")[0] in special_keys
+        ]
+        if len(command_line_special_keys) == 0:
+            return
+
+        mapped_specials = Parser.map_argv(command_line_special_keys, False, False)
+        parsed_specials = Parser.parse_arg_types(mapped_specials, True, True)
+
+        self.conf.update({k[1:]: v for k, v in parsed_specials.items()})
 
     @staticmethod
     def check_args(args: List[str]) -> None:
