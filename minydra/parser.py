@@ -68,20 +68,23 @@ class Parser:
         """
         super().__init__()
 
-        self.verbose = verbose
-        self.allow_overwrites = allow_overwrites
-        self.warn_overwrites = warn_overwrites
-        self.parse_env = parse_env
-        self.warn_env = warn_env
-        self.strict = strict
-        self.keep_special_kwargs = keep_special_kwargs
+        self.conf = MinyDict()
+
+        self.conf.verbose = verbose
+        self.conf.allow_overwrites = allow_overwrites
+        self.conf.warn_overwrites = warn_overwrites
+        self.conf.parse_env = parse_env
+        self.conf.warn_env = warn_env
+        self.conf.defaults = defaults
+        self.conf.strict = strict
+        self.conf.keep_special_kwargs = keep_special_kwargs
 
         self._argv = sys.argv[1:]
+        self._parse_args()
         self._print("sys.argv:", self._argv)
 
-        self._parse_args()
-        if defaults is not None or self.args["@defaults"]:
-            default = self.load_defaults(self.args["@defaults"] or defaults)
+        if self.conf.defaults is not None or self.args["@defaults"]:
+            default = self.load_defaults(self.args["@defaults"] or self.conf.defaults)
             args = self.args.deepcopy().resolve()
 
             args_defaults = args["@defaults"]
@@ -90,12 +93,12 @@ class Parser:
             if args_defaults is not None:
                 del args["@defaults"]
             if args_strict is not None:
-                self.strict = args["@strict"]
+                self.conf.strict = args["@strict"]
                 del args["@strict"]
 
-            self.args = default.update(args, strict=self.strict)
+            self.args = default.update(args, strict=self.conf.strict)
 
-            if self.keep_special_kwargs:
+            if self.conf.keep_special_kwargs:
                 if args_defaults is not None:
                     self.args["@defaults"] = args_defaults
                 if args_strict is not None:
@@ -135,53 +138,21 @@ class Parser:
         return default
 
     def _print(self, *args, **kwargs):
-        if self.verbose > 0:
+        if self.conf.verbose > 0:
             print(*args, **kwargs)
 
     def _parse_args(self):
-        self.dict_args = Parser.parse_args(
-            self._argv,
-            self.allow_overwrites,
-            self.warn_overwrites,
-            self.parse_env,
-            self.warn_env,
+        self._parse_conf()
+        Parser.check_args(self._argv)
+        args = Parser.map_argv(
+            self._argv, self.conf.allow_overwrites, self.conf.warn_overwrites
         )
-        self.args = MinyDict(**self.dict_args)
+        args = Parser.parse_arg_types(args, self.conf.parse_env, self.conf.warn_env)
 
-    @staticmethod
-    def parse_args(
-        args,
-        allow_overwrites=True,
-        warn_overwrites=True,
-        parse_env=True,
-        warn_env=True,
-    ):
-        """
-        Parses raw `sys.arv[1:]` arguments into a Python `dict`, running sequentially:
+        self.args = MinyDict(**args)
 
-        * `Parser.check_args`
-        * `Parser.map_args`
-        * `Parser.parse_arg_types`
-
-
-        Args:
-            args (list[str]): Raw `sys.arv[1:]` arguments.
-            allow_overwrites (bool, optional): Wether to allow for repeating arguments
-                in the command line. Defaults to True.
-            warn_overwrites (bool, optional): Wether to print a waring in case of a
-                repeated argument (if that is allowed). Defaults to True.
-            parse_env (bool, optional): Wether to parse environment variables specified
-                as key or value in the command line. Defaults to True.
-            warn_env (bool, optional): Wether to print a warning in case an environment
-                variable is parsed but no value is found. Defaults to True.
-
-        Returns:
-            dict: Processed arguments as `{key:parsedValue}`.
-        """
-        Parser.check_args(args)
-        args = Parser.map_args(args, allow_overwrites, warn_overwrites)
-        args = Parser.parse_arg_types(args, parse_env, warn_env)
-        return args
+    def _parse_conf(self):
+        pass
 
     @staticmethod
     def check_args(args: List[str]) -> None:
@@ -371,7 +342,7 @@ class Parser:
         print(text)
 
     @staticmethod
-    def map_args(args, allow_overwrites, warn_overwrites):
+    def map_argv(args, allow_overwrites, warn_overwrites):
         """
         Create a dictionnary from the list of arguments:
 
