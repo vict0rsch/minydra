@@ -45,6 +45,12 @@ if __name__ == "__main__":
         warn_overwrites=True, # warn repeating args if they are allowed
         parse_env=True, # get environment variable
         warn_env=True, # warn if an environment variable is specified but not found
+        defaults=None, # path to a MinyDict-loadable dictionary of default values for the args
+        strict=True, # if `defaults` is provided, whether to allow new keys in the command-line
+                     # or restrict to `defaults`' keys
+        keep_special_kwargs=True, # `defaults` and `strict` can be set from the command-line
+                                  # with `@defaults=` and `@strict=`. This argument decides if
+                                  # you want to keep those keys in the final arguments.
     )
     args = parser.args.pretty_print().resolve().pretty_print() # notice .resolve() transforms dotted.keys into nested dicts
 ```

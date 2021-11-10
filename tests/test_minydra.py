@@ -74,6 +74,24 @@ def test_defaults():
             del args["@defaults"]
             assert args.to_dict() == json.loads(d1.read_text())
 
+    with patch.object(
+        sys, "argv", ["", f"@defaults={str(d1)}", "@strict=false", "new_key=3"]
+    ):
+        args = minydra.resolved_args(keep_special_kwargs=False)
+        target = json.loads(d1.read_text())
+        target["new_key"] = 3
+        assert args.to_dict() == target
+
+    with patch.object(
+        sys, "argv", ["", f"@defaults={str(d1)}", "@strict=false", "new_key=3"]
+    ):
+        args = minydra.resolved_args()
+        del args["@defaults"]
+        del args["@strict"]
+        target = json.loads(d1.read_text())
+        target["new_key"] = 3
+        assert args.to_dict() == target
+
     double_defaults = f"['{str(d1)}', '{str(d2)}']"
     with patch.object(sys, "argv", ["", f"@defaults={double_defaults}", "new_key=3"]):
         args = minydra.resolved_args()
