@@ -1,7 +1,7 @@
 from .dict import MinyDict  # noqa: F401
 from .parser import Parser
 
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 
 
 def parse_args(
