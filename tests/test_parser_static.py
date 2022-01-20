@@ -35,44 +35,44 @@ def test_check_args():
         Parser.check_args([".p=2"])
 
 
-def test_simple_map_args(capfd):
+def test_simple_map_argv(capfd):
     args = ["a=2"]
-    assert Parser.map_args(args, True, False) == {"a": "2"}
+    assert Parser.map_argv(args, True, False) == {"a": "2"}
 
 
-def test_map_args_overwrite_warn(capfd):
+def test_map_argv_overwrite_warn(capfd):
     args = ["a=2", "a=3"]
-    assert Parser.map_args(args, True, True) == {"a": "3"}
+    assert Parser.map_argv(args, True, True) == {"a": "3"}
     out, err = capfd.readouterr()
     assert "Repeated argument a" in out
 
 
-def test_map_args_overwrite_no_warn(capfd):
+def test_map_argv_overwrite_no_warn(capfd):
     args = ["a=2", "a=3"]
-    assert Parser.map_args(args, True, False) == {"a": "3"}
+    assert Parser.map_argv(args, True, False) == {"a": "3"}
     out, err = capfd.readouterr()
     assert not out
 
 
-def test_map_args_no_overwrite(capfd):
+def test_map_argv_no_overwrite(capfd):
     args = ["a=2", "a=3"]
     with pytest.raises(MinydraWrongArgumentException):
-        Parser.map_args(args, False, False)
+        Parser.map_argv(args, False, False)
 
 
-def test_map_args_positive_flag():
+def test_map_argv_positive_flag():
     args = ["a", "b"]
-    assert Parser.map_args(args, False, False) == {"a": True, "b": True}
+    assert Parser.map_argv(args, False, False) == {"a": True, "b": True}
 
 
-def test_map_args_negative_flag():
+def test_map_argv_negative_flag():
     args = ["-a", "-b"]
-    assert Parser.map_args(args, False, False) == {"a": False, "b": False}
+    assert Parser.map_argv(args, False, False) == {"a": False, "b": False}
 
 
-def test_map_args_mixed_flags():
+def test_map_argv_mixed_flags():
     args = ["a", "-b"]
-    assert Parser.map_args(args, False, False) == {"a": True, "b": False}
+    assert Parser.map_argv(args, False, False) == {"a": True, "b": False}
 
 
 def test_set_env(monkeypatch, capfd):

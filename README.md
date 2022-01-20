@@ -179,6 +179,44 @@ In [3]: Parser.type_separator
 Out[3]: '___'
 ```
 
+<br/>
+
+### Command-line configuration
+
+You can configure the `Parser` from the command-line using special `@` arguments. In other words, all `__init__(self, ...)` arguments can be set from the command-line with `@argname=new_value`.
+
+In particular if you run `python examples/decorator.py @defaults=./examples/demo.json` you will see:
+
+```
+╭──────────────────────────────────────╮
+│ @defaults : ./examples/demo.json     │
+│ log                                  │
+│ │logger                              │
+│ │ │log_level   : DEBUG               │
+│ │ │logger_name : minydra             │
+│ │outdir  : /some/path                │
+│ │project : demo                      │
+│ verbose   : False                    │
+╰──────────────────────────────────────╯
+```
+
+**But** if you add `@strict=false @keep_special_kwargs=false` you will now have:
+
+```
+$ python examples/decorator.py @defaults=./examples/demo.json @strict=false @keep_special_kwargs=false
+╭──────────────────────────────╮
+│ log                          │
+│ │logger                      │
+│ │ │log_level   : DEBUG       │
+│ │ │logger_name : minydra     │
+│ │outdir  : /some/path        │
+│ │project : demo              │
+│ verbose : False              │
+╰──────────────────────────────╯
+```
+
+(*you need to have `@strict=false` since `@keep_special_kwargs` is unknown in `demo.json`. It would not be the case if `strict=false` had been used in the script itself (but it can be overridden from the command-line!)*)
+
 <br/><br/>
 
 ## MinyDict
@@ -349,10 +387,11 @@ The `minydra.Parser` class takes a `defaults=` keyword argument. This can be:
 
 * a `str` or a `pathlib.Path` to a `json` `yaml` or `pickle` file that `minydra.MinyDict` can load (`from_X`)
 * a `dict` or a `minydra.MinyDict`
+* a `list` of the above types, in which case the resulting defaults will be the result of sequential updates from those defaults, enabling hierarchical defaults (first defaults are the starting point, then each subsequent defaults updates it)
 
 When `defaults` is provided, the resulting `minydra.MinyDict` serves as a reference for the arguments parsed from the command-line:
 
-* arguments from the command-line have a higher priority but **must** be present in the `defaults` (`defaults.update(args, strict=True)` is used, see [strict mode](#strict-mode))
+* **If** you setup the parser with `strict=True`, arguments from the command-line will still have a higher priority but they will **have to** be present in the `defaults` to prevent typos or unknown arguments (see [strict mode](#strict-mode))
 * arguments not present in the command-line with fallback to values in `defaults`
 
 `defaults` can actually be a `list` and the update order is the same as the list's. For instance:

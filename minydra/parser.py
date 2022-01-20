@@ -68,63 +68,96 @@ class Parser:
         """
         super().__init__()
 
-        self.verbose = verbose
-        self.allow_overwrites = allow_overwrites
-        self.warn_overwrites = warn_overwrites
-        self.parse_env = parse_env
-        self.warn_env = warn_env
-        self.strict = strict
-        self.keep_special_kwargs = keep_special_kwargs
+        self.conf = MinyDict()
+        # store initial arguments in a conf object to be able to
+        # retrieve them later and most importantly to be able to
+        # parse them in the `_parse_conf()` method
+        self.conf.verbose = verbose
+        self.conf.allow_overwrites = allow_overwrites
+        self.conf.warn_overwrites = warn_overwrites
+        self.conf.parse_env = parse_env
+        self.conf.warn_env = warn_env
+        self.conf.defaults = defaults
+        self.conf.strict = strict
+        self.conf.keep_special_kwargs = keep_special_kwargs
 
         self._argv = sys.argv[1:]
+        self._parse_args()
         self._print("sys.argv:", self._argv)
 
-        self._parse_args()
-        if defaults is not None or self.args["@defaults"]:
-            default = self.load_defaults(self.args["@defaults"] or defaults)
+        # defaults are provided
+        if self.conf.defaults is not None or self.args["@defaults"]:
+            # load defaults as a MinyDict
+            default = self.load_defaults(self.args["@defaults"] or self.conf.defaults)
+            # resolve existing args to properly override nested defaults
             args = self.args.deepcopy().resolve()
 
             args_defaults = args["@defaults"]
             args_strict = args["@strict"]
 
+            # clean args
             if args_defaults is not None:
                 del args["@defaults"]
             if args_strict is not None:
-                self.strict = args["@strict"]
+                self.conf.strict = args["@strict"]
                 del args["@strict"]
 
-            self.args = default.update(args, strict=self.strict)
+            # update defaults from command-line args
+            self.args = default.update(args, strict=self.conf.strict)
 
-            if self.keep_special_kwargs:
+            # bring back special (@) kwargs if need be
+            if self.conf.keep_special_kwargs:
                 if args_defaults is not None:
                     self.args["@defaults"] = args_defaults
                 if args_strict is not None:
                     self.args["@strict"] = args_strict
 
+        # clean up special (@) kwargs if need be
+        if not self.conf.keep_special_kwargs:
+            for k in self.conf:
+                self.args.pop(f"@{k}", None)
+
     @staticmethod
     def load_defaults(default: Union[str, dict, MinyDict]):
         """
-        Set the default keys.
+        Set the default keys from `defaults`:
+
+        * str/path -> must point to a yaml/json/pickle file then
+            MinyDict.from_X will be used
+        * dict -> Convert that dictionnary to a resolved MinyDict
+        * list -> Recursively calls load_defaults on each element, then
+            sequentially update an (initially empty) MinyDict to allow
+            for hierarchical defaults.
 
         Args:
             allow (Union[str, dict, MinyDict]): The set of allowed keys as a
                 (Miny)dict or a path to a file that `minydra.MinyDict` will be able to
                 load (as `json`, `pickle` or `yaml`)
         """
+        # `defaults` is a path: load it with MinyDict.from_X
         if isinstance(default, (str, pathlib.Path)):
+            # resolve path to file
             default = resolve_path(default)
+            # ensure it exists
             assert default.exists()
             assert default.is_file()
+            # check for known file formats
             if default.suffix not in {".json", ".yaml", ".yml", ".pickle", ".pkl"}:
                 raise ValueError(f"{str(default)} is not a valid file extension.")
+            # Load from YAML
             if default.suffix in {".yaml", ".yml"}:
                 default = MinyDict.from_yaml(default)
+            # Load from Pickle
             elif default.suffix in {".pickle", ".pkl"}:
                 default = MinyDict.from_pickle(default)
+            # Load from JSON
             else:
                 default = MinyDict.from_json(default)
+        # `defaults` is a dictionnary: convert it to a resolved MinyDict
         elif isinstance(default, dict):
             default = MinyDict(default).resolve()
+        # `defaults` is a list: recursively call load_defaults on each element
+        # then sequentially merge all dictionaries to enable hierarchical defaults
         elif isinstance(default, list):
             defaults = [Parser.load_defaults(d) for d in default]
             default = MinyDict()
@@ -135,53 +168,43 @@ class Parser:
         return default
 
     def _print(self, *args, **kwargs):
-        if self.verbose > 0:
+        if self.conf.verbose > 0:
             print(*args, **kwargs)
 
     def _parse_args(self):
-        self.dict_args = Parser.parse_args(
-            self._argv,
-            self.allow_overwrites,
-            self.warn_overwrites,
-            self.parse_env,
-            self.warn_env,
+        # check arguments syntax
+        Parser.check_args(self._argv)
+        # edit configuration to use the command-line special (@) arguments
+        self._parse_conf()
+        # create a dictionary from the command-line string arguments
+        args = Parser.map_argv(
+            self._argv, self.conf.allow_overwrites, self.conf.warn_overwrites
         )
-        self.args = MinyDict(**self.dict_args)
+        # parse the dictionary's values into known types
+        args = Parser.parse_arg_types(args, self.conf.parse_env, self.conf.warn_env)
 
-    @staticmethod
-    def parse_args(
-        args,
-        allow_overwrites=True,
-        warn_overwrites=True,
-        parse_env=True,
-        warn_env=True,
-    ):
-        """
-        Parses raw `sys.arv[1:]` arguments into a Python `dict`, running sequentially:
+        # store the parsed & typed arguments in a MinyDict
+        self.args = MinyDict(**args)
 
-        * `Parser.check_args`
-        * `Parser.map_args`
-        * `Parser.parse_arg_types`
-
-
-        Args:
-            args (list[str]): Raw `sys.arv[1:]` arguments.
-            allow_overwrites (bool, optional): Wether to allow for repeating arguments
-                in the command line. Defaults to True.
-            warn_overwrites (bool, optional): Wether to print a waring in case of a
-                repeated argument (if that is allowed). Defaults to True.
-            parse_env (bool, optional): Wether to parse environment variables specified
-                as key or value in the command line. Defaults to True.
-            warn_env (bool, optional): Wether to print a warning in case an environment
-                variable is parsed but no value is found. Defaults to True.
-
-        Returns:
-            dict: Processed arguments as `{key:parsedValue}`.
-        """
-        Parser.check_args(args)
-        args = Parser.map_args(args, allow_overwrites, warn_overwrites)
-        args = Parser.parse_arg_types(args, parse_env, warn_env)
-        return args
+    def _parse_conf(self):
+        # find all potentially overridable arguments
+        special_keys = [f"@{k}" for k in self.conf.keys()]
+        # find all minydra-specific command-line args:
+        # they must start with an "@" AND be in special_keys
+        # so that @unknown=4 will be kept as an argument, not a configuration
+        # argument.
+        command_line_special_keys = [
+            arg for arg in self._argv if arg.split("=")[0] in special_keys
+        ]
+        # No special (@) arguments: nothing to do
+        if len(command_line_special_keys) == 0:
+            return
+        # create a dictionary of special (@) arguments ({key:value})
+        mapped_specials = Parser.map_argv(command_line_special_keys, False, False)
+        # parse the dictionary's values into known types
+        parsed_specials = Parser.parse_arg_types(mapped_specials, True, True)
+        # override conf from special (@) command-line arguments
+        self.conf.update({k[1:]: v for k, v in parsed_specials.items()})
 
     @staticmethod
     def check_args(args: List[str]) -> None:
@@ -371,7 +394,7 @@ class Parser:
         print(text)
 
     @staticmethod
-    def map_args(args, allow_overwrites, warn_overwrites):
+    def map_argv(args, allow_overwrites, warn_overwrites):
         """
         Create a dictionnary from the list of arguments:
 

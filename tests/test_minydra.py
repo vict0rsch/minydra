@@ -100,3 +100,47 @@ def test_defaults():
         d1d = d1d.update(d2d)
         del args["@defaults"]
         assert args == d1d
+
+
+def test_auto_kwargs():
+    examples = Path(__file__).resolve().parent.parent / "examples"
+    d1 = examples / "demo.json"
+    with patch.object(
+        sys,
+        "argv",
+        [
+            "",
+            "@verbose=1",
+            "@allow_overwrites=True",
+            "@warn_overwrites=False",
+            "@parse_env=False",
+            "@warn_env=False",
+            f"@defaults={str(d1)}",
+            "@strict=False",
+            "@keep_special_kwargs=False",
+            "new_key=3",
+        ],
+    ):
+        parser = minydra.Parser(
+            verbose=0,
+            allow_overwrites=False,
+            warn_overwrites=True,
+            parse_env=True,
+            warn_env=True,
+            defaults=None,
+            strict=True,
+            keep_special_kwargs=True,
+        )
+        args = parser.args.resolve()
+
+        assert parser.conf.verbose == 1
+        assert parser.conf.allow_overwrites is True
+        assert parser.conf.warn_overwrites is False
+        assert parser.conf.parse_env is False
+        assert parser.conf.warn_env is False
+        assert parser.conf.strict is False
+        assert parser.conf.keep_special_kwargs is False
+
+        target = json.loads(d1.read_text())
+        target["new_key"] = 3
+        assert args.to_dict() == target
